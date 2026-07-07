@@ -1,6 +1,7 @@
 import { APP_NAME, APP_VERSION } from '@/constants/app';
 import { SettingsIcon } from '@/content/components/icons/SettingsIcon';
 import { WorkspaceExplorer } from '@/content/components/workspace-explorer/WorkspaceExplorer';
+import { openExtensionOptionsPage } from '@/content/open-options-page';
 
 interface WorkspaceSidebarProps {
   isOpen: boolean;
@@ -25,9 +26,9 @@ export function WorkspaceSidebar({ isOpen, onClose }: WorkspaceSidebarProps) {
 
       <footer className="flex items-center justify-between border-t border-slate-200 px-6 py-4">
         <button
-          className="inline-flex h-9 items-center gap-2 rounded-md px-3 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 focus-visible:ring-4 focus-visible:ring-slate-200 focus-visible:outline-none"
-          disabled
+          className="inline-flex h-9 items-center gap-2 rounded-md px-3 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 focus-visible:ring-4 focus-visible:ring-slate-200 focus-visible:outline-none"
           type="button"
+          onClick={openExtensionOptionsPage}
         >
           <SettingsIcon />
           <span>Settings</span>

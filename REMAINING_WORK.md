@@ -19,7 +19,6 @@ extension foundation into a beta-ready and eventually paid product.
 - Keep basic search free.
 - Keep favorites free.
 - Keep local-only persistence free.
-- Add a usable settings screen for local preferences.
 - Add onboarding after the extension is installed.
 - Add empty-state guidance when no conversations are detected.
 - Add an import/export backup for local workspace data.
@@ -41,6 +40,7 @@ extension foundation into a beta-ready and eventually paid product.
 - Advanced bulk actions.
 - Multi-provider workspace support for Claude, Gemini, Grok, Perplexity, and local LLMs.
 - Team or agency workspaces later, after the solo product is stable.
+- Weekly AI workspace digest with highlights, forgotten threads, and suggested follow-ups.
 
 ## Monetization Infrastructure
 
@@ -58,9 +58,6 @@ extension foundation into a beta-ready and eventually paid product.
 
 ## Extension UX
 
-- Build a real options/settings page.
-- Enable the disabled Settings button in the sidebar.
-- Add plan/account section to settings.
 - Add premium badges or locked states without making the free UI feel broken.
 - Add clear error states for ChatGPT DOM detection failures.
 - Add a first-run onboarding panel.
@@ -101,10 +98,9 @@ extension foundation into a beta-ready and eventually paid product.
 
 ## Suggested Priority After Test Foundation
 
-1. Build the real settings page and wire the sidebar Settings button.
-2. Add entitlement and feature-gate primitives locally, before adding billing.
-3. Implement Markdown export as the first premium-shaped feature.
-4. Add storage migrations before changing persisted data.
-5. Add Playwright extension smoke tests for install, sidebar open, folder create, assign, and reload persistence.
-6. Add onboarding and upgrade prompts.
-7. Add backend, account, and billing only after the free local flow feels stable.
+1. Add entitlement and feature-gate primitives locally, before adding billing.
+2. Implement Markdown export as the first premium-shaped feature.
+3. Add storage migrations before changing persisted data.
+4. Add Playwright extension smoke tests for install, sidebar open, folder create, assign, and reload persistence.
+5. Add onboarding and upgrade prompts.
+6. Add backend, account, and billing only after the free local flow feels stable.

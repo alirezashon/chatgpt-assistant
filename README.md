@@ -1,23 +1,8 @@
-# ChatGPT Workspace
+# AI Workspace
 
-ChatGPT Workspace is a local-first Chrome Extension that adds workspace organization tools to the ChatGPT website. The current repository contains the production-ready project foundation for a Manifest V3 extension built with React, TypeScript, Vite, Tailwind CSS, ESLint, Prettier, Husky, and lint-staged.
+AI Workspace is a local-first workspace platform for organizing and working across AI conversations. It currently ships as a Chrome Extension for ChatGPT, but the architecture is evolving toward a provider-agnostic AI workspace capable of supporting ChatGPT, Claude, Gemini, Grok, Perplexity, DeepSeek, OpenRouter, OpenAI API, Anthropic API, local LLMs, and future providers through adapter modules.
 
-The MVP will eventually support folders, chat assignment, favorites, tags, better local search, and Markdown/PDF export. Those product features are intentionally not implemented in this bootstrap.
-
-## Current Scope
-
-This bootstrap includes:
-
-- Manifest V3 configuration.
-- Vite multi-entry extension build.
-- Strict TypeScript configuration.
-- React entry points for popup, options, and content script surfaces.
-- Tailwind CSS setup.
-- ESLint and Prettier setup.
-- Husky and lint-staged setup.
-- Path aliases and absolute imports.
-- Environment variable support.
-- Scalable source folder structure.
+The current product includes the foundation, injected Shadow DOM UI, Provider-Agnostic Platform architecture, Workspace Explorer, Universal Search Engine, Quick Action Framework, AI Intelligence architecture, favorites, folder management, conversation detection, conversation assignment, and persistence/synchronization infrastructure. Tags, full export generation, provider-backed AI calls, cloud sync, accounts, payments, and analytics are intentionally out of scope until the core local workflow is stable.
 
 ## Tech Stack
 
@@ -26,15 +11,12 @@ This bootstrap includes:
 - TypeScript
 - Vite
 - Tailwind CSS
-- ESLint
-- Prettier
-- Husky
-- lint-staged
-- npm
+- Chrome Storage API
+- Content Scripts
+- Background Service Worker
+- ESLint, Prettier, Husky, lint-staged
 
 ## Installation
-
-Install dependencies:
 
 ```bash
 npm install
@@ -42,191 +24,112 @@ npm install
 
 ## Development
 
-Start the Vite development server:
-
 ```bash
 npm run dev
 ```
 
-For extension testing, use the production build and load the generated `dist` directory into Chrome.
+For extension testing, build the project and load `dist/` into Chrome. The Vite dev server is useful for popup/options work, while the content script should be verified as a built extension.
 
 ## Build
-
-Create a Chrome-loadable extension build:
 
 ```bash
 npm run build
 ```
 
-The compiled extension is written to:
-
-```text
-dist/
-```
+The Chrome-loadable extension is emitted to `dist/`.
 
 ## Quality Checks
 
-Run TypeScript:
-
 ```bash
 npm run typecheck
-```
-
-Run ESLint:
-
-```bash
 npm run lint
-```
-
-Check formatting:
-
-```bash
 npm run format:check
-```
-
-Run the full verification pipeline:
-
-```bash
 npm run check
 ```
+
+`npm run check` is the release gate. It runs TypeScript, ESLint, Prettier check, and both Vite builds.
 
 ## Load Into Chrome
 
 1. Run `npm run build`.
-2. Open Chrome.
-3. Go to `chrome://extensions`.
-4. Enable Developer mode.
-5. Click `Load unpacked`.
-6. Select the `dist` folder from this repository.
-7. Open the extension popup to verify it displays `ChatGPT Workspace` and `Version 0.1.0`.
+2. Open `chrome://extensions`.
+3. Enable Developer mode.
+4. Click `Load unpacked`.
+5. Select the repository `dist/` directory.
+6. Open `https://chatgpt.com/` and verify the floating ChatGPT Workspace button appears.
+
+## Architecture Overview
+
+```mermaid
+flowchart TD
+  Content["Content Script"] --> Shadow["Shadow DOM UI"]
+  Shadow --> React["React Components"]
+  React --> Hooks["Feature Hooks"]
+  React --> Explorer["Workspace Explorer"]
+  Explorer --> Hooks
+  Hooks --> Services["Domain Services"]
+  Services --> Repositories["Repositories"]
+  Repositories --> Storage["Storage Abstraction"]
+  Storage --> Chrome["Chrome Storage"]
+
+  Workspace["Workspace Engine"] --> Conversations["Conversation Engine"]
+  Workspace --> Folders["Folder Domain"]
+  Workspace --> Assignments["Assignment Domain"]
+  Workspace --> Sync["Synchronization Engine"]
+  Sync --> Storage
+```
 
 ## Folder Overview
 
 ```text
 src/
-├─ app/
-├─ assets/
-├─ background/
-├─ components/
-├─ constants/
-├─ content/
-├─ features/
-├─ hooks/
-├─ layouts/
-├─ lib/
-├─ options/
-├─ popup/
-├─ services/
-├─ shared/
-├─ storage/
-├─ styles/
-├─ types/
-└─ utils/
+  app/                 Application engines and cross-feature orchestration
+  app/synchronization/ Persistence, snapshots, recovery, and sync events
+  app/workspace/       Workspace lifecycle, commands, queries, and registry
+  background/          Manifest V3 background service worker
+  constants/           Product, storage, settings, and UI constants
+  content/             ChatGPT page injection, Shadow DOM UI, and content UI
+  features/            Domain modules for folders, conversations, assignments
+  options/             Options page entry point
+  platform/            Provider-agnostic runtime, provider adapters, plugins
+  popup/               Popup entry point
+  services/            Future generic service descriptors
+  shared/              Errors, logger, and shared entity types
+  state/               Lightweight external-store implementation
+  storage/             Chrome Storage adapter and storage interfaces
+  styles/              Global Tailwind CSS
+  types/               Environment and asset declarations
 ```
 
-### `src/app`
+## Implemented Modules
 
-Application-level composition and future app providers.
+- Workspace Engine: coordinates lifecycle, commands, queries, and subsystem registration.
+- Provider Platform: adapter registry, provider lifecycle, sessions, capabilities, authentication, streaming, message pipeline, plugin registry, cache, and telemetry.
+- Workspace Explorer: file-manager-style interface for folder navigation, conversation lists, filters, counters, active conversation visibility, and assignment visibility.
+- Universal Search Engine: provider-based indexed search for folders, conversations, assignments, recent search history, suggestions, and future semantic providers.
+- Quick Action Framework: provider-registered actions, context menus, bulk selection, folder picker, copy/open actions, rename, favorites, and export placeholders.
+- AI Intelligence Layer: provider registry, task manager, job queue, cache, history, settings, semantic placeholders, hooks, and privacy-first orchestration without external provider calls.
+- Conversation Engine: detects current/listed ChatGPT conversations with centralized selectors and MutationObserver cleanup.
+- Folder Domain: model, validation, repository, service, hooks, and management UI.
+- Assignment Domain: maps conversations to folders with repository/service/state/event boundaries.
+- Synchronization Engine: persists snapshots, restores state, handles conflicts, queues writes, and exposes sync hooks.
+- Injected UI: React rendered inside Shadow DOM with isolated styles and reduced-motion support.
 
-### `src/assets`
+## Security Posture
 
-Static source assets such as images, icons, and local media before build processing.
-
-### `src/background`
-
-Manifest V3 background service worker entry point and future background coordination code.
-
-### `src/components`
-
-Reusable UI components that are not tied to one feature.
-
-### `src/constants`
-
-Application constants such as product name, version, route names, and extension-level identifiers.
-
-### `src/content`
-
-Content script entry point and future ChatGPT page integration code.
-
-### `src/features`
-
-Feature-based modules such as folders, favorites, tags, search, and export when implementation begins.
-
-### `src/hooks`
-
-Reusable React hooks that are not owned by one specific feature.
-
-### `src/layouts`
-
-Shared layout components for popup, options, and future injected UI surfaces.
-
-### `src/lib`
-
-Small framework-facing library helpers and third-party integration wrappers.
-
-### `src/options`
-
-Options page React entry point and future options UI.
-
-### `src/popup`
-
-Popup React entry point. The current popup only verifies the extension shell.
-
-### `src/services`
-
-Application services that coordinate use cases without depending on UI.
-
-### `src/shared`
-
-Cross-context shared code for content scripts, background worker, popup, and options.
-
-### `src/storage`
-
-Future storage repositories, migrations, and storage adapters.
-
-### `src/styles`
-
-Global styles and Tailwind entry CSS.
-
-### `src/types`
-
-Global and environment type declarations.
-
-### `src/utils`
-
-Small pure utility functions.
-
-## Architecture
-
-The project is organized so UI, domain behavior, Chrome APIs, storage, and ChatGPT DOM integration can remain separate as features are added.
-
-Current extension entries:
-
-- `src/background/service-worker.ts`
-- `src/content/main.tsx`
-- `src/popup/main.tsx`
-- `src/options/main.tsx`
-
-The build emits stable entry names under `dist/assets` so `public/manifest.json` can reference the background worker and content script directly.
-
-## Environment Variables
-
-Environment variables are read through Vite and must use the `VITE_` prefix.
-
-Example:
-
-```text
-VITE_APP_NAME=ChatGPT Workspace
-VITE_APP_VERSION=0.1.0
-```
-
-See `.env.example`.
+- Minimal extension permission set: `storage` only.
+- Content scripts are restricted to ChatGPT origins.
+- Explicit Manifest V3 extension page CSP.
+- No dangerous HTML sinks, dynamic code execution, token storage, or cross-window messaging.
+- Chrome Storage reads are validated before use and treated as untrusted.
 
 ## Contribution Guidelines
 
 - Keep TypeScript strict.
 - Do not use `any`.
-- Keep business logic outside UI components.
-- Keep Chrome APIs behind dedicated adapters when implementation begins.
-- Keep ChatGPT DOM access isolated to content-specific adapters.
+- Do not access Chrome APIs from UI components.
+- Keep business logic in services/hooks, not visual components.
+- Keep ChatGPT DOM access inside the conversation/content infrastructure.
+- Keep provider-specific code inside provider adapters.
+- Keep files focused; components should remain small and composable.
 - Run `npm run check` before submitting changes.

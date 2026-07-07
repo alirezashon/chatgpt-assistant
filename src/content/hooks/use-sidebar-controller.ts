@@ -1,18 +1,21 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect } from 'react';
+
+import { useSyncActions, useUiPreferences } from '@/app/synchronization';
 
 export function useSidebarController() {
-  const [isOpen, setIsOpen] = useState(false);
+  const { setSidebarOpen } = useSyncActions();
+  const { sidebarOpen } = useUiPreferences();
 
   const close = useCallback(() => {
-    setIsOpen(false);
-  }, []);
+    setSidebarOpen(false);
+  }, [setSidebarOpen]);
 
   const toggle = useCallback(() => {
-    setIsOpen((currentValue) => !currentValue);
-  }, []);
+    setSidebarOpen(!sidebarOpen);
+  }, [setSidebarOpen, sidebarOpen]);
 
   useEffect(() => {
-    if (!isOpen) {
+    if (!sidebarOpen) {
       return undefined;
     }
 
@@ -27,11 +30,11 @@ export function useSidebarController() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [close, isOpen]);
+  }, [close, sidebarOpen]);
 
   return {
     close,
-    isOpen,
+    isOpen: sidebarOpen,
     toggle,
   };
 }

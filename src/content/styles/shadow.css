@@ -22,3 +22,77 @@
 button {
   font: inherit;
 }
+
+.cgw-fade-in {
+  animation: cgw-fade-in var(--cgw-animation-fast) ease-out;
+}
+
+.cgw-scale-in {
+  animation: cgw-scale-in var(--cgw-animation-fast) ease-out;
+}
+
+.cgw-menu-in {
+  animation: cgw-menu-in 150ms ease-out;
+  transform-origin: top right;
+}
+
+.cgw-folder-in {
+  animation: cgw-folder-in var(--cgw-animation-fast) ease-out;
+}
+
+@keyframes cgw-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes cgw-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes cgw-menu-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-2px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes cgw-folder-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 1ms !important;
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "name": "chatgpt-workspace",
+  "version": "0.1.0",
+  "description": "A local-first Chrome Extension that adds workspace organization tools to ChatGPT.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "vite --mode development",
+    "build": "tsc --noEmit && vite build && vite build --config vite.content.config.ts",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings=0",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm run build",
+    "prepare": "node .husky/install.mjs"
+  },
+  "keywords": [
+    "chrome-extension",
+    "chatgpt",
+    "workspace",
+    "react",
+    "typescript"
+  ],
+  "author": "",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@tailwindcss/vite": "^4.3.2",
+    "@types/chrome": "^0.2.2",
+    "@types/node": "^26.1.0",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
+    "eslint": "^10.6.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.3",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.8",
+    "prettier": "^3.9.4",
+    "tailwindcss": "^4.3.2",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.63.0",
+    "vite": "^8.1.3"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --max-warnings=0",
+      "prettier --write"
+    ],
+    "*.{json,md,css,html}": [
+      "prettier --write"
+    ]
+  }
+}

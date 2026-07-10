@@ -9,6 +9,7 @@ import type {
 import { WorkspaceManager } from '@/app/workspace/workspace-manager';
 import { WorkspaceQueries } from '@/app/workspace/workspace-queries';
 import type { WorkspaceCommandMap, WorkspaceCommandName } from '@/app/workspace/workspace-types';
+import { migrateStorage } from '@/storage';
 
 export class WorkspaceEngine {
   public readonly commands: WorkspaceCommands;
@@ -30,12 +31,13 @@ export class WorkspaceEngine {
     }
 
     this.started = true;
+    await migrateStorage(this.context.storage);
     this.context.events.publish('engineStarted', undefined);
     this.manager.start();
-    await this.context.synchronizationEngine.start();
 
     try {
       await this.commands.execute('initializeWorkspace', undefined);
+      await this.context.synchronizationEngine.start();
     } catch (error) {
       this.manager.captureError(error);
     }

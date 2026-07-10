@@ -56,7 +56,6 @@ export class SynchronizationCoordinator {
     await this.persistenceManager.restore();
     this.subscribeToRuntimeState();
     this.subscribeToStorage();
-    this.requestSync();
   }
 
   public stop(): void {

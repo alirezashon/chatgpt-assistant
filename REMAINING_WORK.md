@@ -19,8 +19,6 @@ extension foundation into a beta-ready and eventually paid product.
 - Keep basic search free.
 - Keep favorites free.
 - Keep local-only persistence free.
-- Add onboarding after the extension is installed.
-- Add empty-state guidance when no conversations are detected.
 - Add an import/export backup for local workspace data.
 
 ## Paid Plan Ideas
@@ -31,7 +29,6 @@ extension foundation into a beta-ready and eventually paid product.
 - Smart cleanup suggestions.
 - Semantic search across conversation history.
 - Tags and auto-tags.
-- Markdown export.
 - PDF export.
 - Batch export.
 - Cross-device cloud sync.
@@ -41,6 +38,12 @@ extension foundation into a beta-ready and eventually paid product.
 - Multi-provider workspace support for Claude, Gemini, Grok, Perplexity, and local LLMs.
 - Team or agency workspaces later, after the solo product is stable.
 - Weekly AI workspace digest with highlights, forgotten threads, and suggested follow-ups.
+- Client-ready project handoff reports generated from selected conversations.
+- Branded export templates with a company logo, cover page, and reusable client formats.
+- Versioned workspace restore points for paid backup and rollback.
+- Workspace health checks that warn about broken sync, stale exports, or missing backups.
+- Guided premium workspace templates for writers, traders, developers, and agencies.
+- Conversation detection diagnostics with a shareable repair report for power users.
 
 ## Monetization Infrastructure
 
@@ -48,29 +51,23 @@ extension foundation into a beta-ready and eventually paid product.
 - Add login/logout UI.
 - Add a secure backend API.
 - Add subscription status lookup.
-- Add plan entitlement model.
-- Add feature gates in the extension.
 - Add billing portal link.
-- Add upgrade prompts for locked premium actions.
 - Add license refresh and offline grace-period behavior.
 - Add secure token storage policy.
 - Add cancellation and expired-plan handling.
 
 ## Extension UX
 
-- Add premium badges or locked states without making the free UI feel broken.
 - Add clear error states for ChatGPT DOM detection failures.
-- Add a first-run onboarding panel.
 - Add release/version notes.
 - Add keyboard shortcut documentation inside settings.
 
 ## Core Feature Completion
 
-- Implement real export providers instead of placeholders.
+- Implement remaining export providers for PDF, JSON, HTML, and richer transcript exports.
 - Implement tags.
 - Implement durable rename behavior or make rename explicitly local-only.
 - Improve cross-tab conflict handling.
-- Add storage schema migrations.
 - Add undo/redo or recovery history for destructive actions.
 - Strengthen conversation detection against ChatGPT UI changes.
 - Add bundle-size reporting.
@@ -98,9 +95,4 @@ extension foundation into a beta-ready and eventually paid product.
 
 ## Suggested Priority After Test Foundation
 
-1. Add entitlement and feature-gate primitives locally, before adding billing.
-2. Implement Markdown export as the first premium-shaped feature.
-3. Add storage migrations before changing persisted data.
-4. Add Playwright extension smoke tests for install, sidebar open, folder create, assign, and reload persistence.
-5. Add onboarding and upgrade prompts.
-6. Add backend, account, and billing only after the free local flow feels stable.
+1. Add backend, account, and billing only after the free local flow feels stable.

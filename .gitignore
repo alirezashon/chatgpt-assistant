@@ -3,6 +3,9 @@ dist/
 .vite/
 .turbo/
 coverage/
+playwright-report/
+test-results/
+output/playwright/
 *.local
 .env
 .env.local

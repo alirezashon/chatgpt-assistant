@@ -61,6 +61,12 @@ export function useWorkspaceExplorerController() {
     [syncActions],
   );
 
+  const dismissOnboarding = useCallback(() => {
+    syncActions.updateUiPreferences({
+      onboardingDismissed: true,
+    });
+  }, [syncActions]);
+
   const toggleMenu = useCallback((folderId: string) => {
     setOpenMenuId((currentFolderId) => (currentFolderId === folderId ? null : folderId));
   }, []);
@@ -241,6 +247,7 @@ export function useWorkspaceExplorerController() {
     confirmDeleteFolder,
     deleteError,
     deleteTarget,
+    dismissOnboarding,
     dialogState,
     filter,
     formError,

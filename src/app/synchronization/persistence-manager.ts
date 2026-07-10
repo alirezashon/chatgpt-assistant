@@ -1,5 +1,6 @@
 import type { RecoveryManager } from '@/app/synchronization/recovery-manager';
 import type { SyncConfig } from '@/app/synchronization/sync-config';
+import { DEFAULT_UI_PREFERENCES } from '@/app/synchronization/sync-config';
 import type { SyncEvents } from '@/app/synchronization/sync-events';
 import { syncStore } from '@/app/synchronization/sync-state';
 import type { WorkspaceSnapshot } from '@/app/synchronization/sync-types';
@@ -170,7 +171,10 @@ export class PersistenceManager {
       });
       syncStore.setState({
         error: null,
-        uiPreferences: snapshot.uiPreferences,
+        uiPreferences: {
+          ...DEFAULT_UI_PREFERENCES,
+          ...snapshot.uiPreferences,
+        },
       });
     } finally {
       this.restoring = false;
@@ -190,7 +194,10 @@ export class PersistenceManager {
       lastSyncedAt: new Date().toISOString(),
       snapshotHistory: history,
       status,
-      uiPreferences: snapshot.uiPreferences,
+      uiPreferences: {
+        ...DEFAULT_UI_PREFERENCES,
+        ...snapshot.uiPreferences,
+      },
     });
   }
 }

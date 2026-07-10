@@ -13,6 +13,7 @@ export default defineConfig(({ mode }) => {
     define: {
       __APP_NAME__: JSON.stringify(env['VITE_APP_NAME'] ?? 'ChatGPT Workspace'),
       __APP_VERSION__: JSON.stringify(env['VITE_APP_VERSION'] ?? '0.1.0'),
+      'process.env.NODE_ENV': JSON.stringify(mode === 'production' ? 'production' : 'development'),
     },
     plugins: [react(), tailwindcss()],
     resolve: {

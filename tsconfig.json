@@ -44,6 +44,8 @@
   },
   "include": [
     "src",
+    "playwright.config.ts",
+    "tests",
     "vitest.config.ts",
     "vite.config.ts",
     "vite.content.config.ts",

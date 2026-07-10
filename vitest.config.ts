@@ -5,6 +5,10 @@ import { defineConfig } from 'vitest/config';
 const rootDirectory = fileURLToPath(new URL('.', import.meta.url));
 
 export default defineConfig({
+  define: {
+    __APP_NAME__: JSON.stringify('ChatGPT Workspace'),
+    __APP_VERSION__: JSON.stringify('0.1.0'),
+  },
   resolve: {
     alias: {
       '@': resolve(rootDirectory, 'src'),

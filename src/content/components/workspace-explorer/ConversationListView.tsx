@@ -166,29 +166,77 @@ interface ConversationEmptyStateProps {
 }
 
 function ConversationEmptyState({ filter, selectedFolderName }: ConversationEmptyStateProps) {
-  const message = getEmptyMessage(filter, selectedFolderName);
+  const content = getEmptyStateContent(filter, selectedFolderName);
 
   return (
-    <div className="flex min-h-32 flex-1 items-center justify-center rounded-lg border border-dashed border-slate-200 px-4 py-8 text-center">
-      <p className="max-w-56 text-sm leading-6 text-slate-500">{message}</p>
+    <div className="flex min-h-40 flex-1 flex-col justify-center rounded-lg border border-dashed border-slate-200 bg-slate-50 px-4 py-6">
+      <p className="text-sm font-semibold text-slate-800">{content.title}</p>
+      <p className="mt-2 text-sm leading-6 text-slate-500">{content.description}</p>
+      {content.steps.length > 0 ? (
+        <ul className="mt-4 grid gap-2 text-xs leading-5 text-slate-600">
+          {content.steps.map((step) => (
+            <li key={step} className="flex gap-2">
+              <span aria-hidden="true" className="mt-2 size-1.5 shrink-0 rounded-full bg-sky-500" />
+              <span>{step}</span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </div>
   );
 }
 
-function getEmptyMessage(filter: ExplorerFilter, selectedFolderName: string | null): string {
+interface EmptyStateContent {
+  readonly description: string;
+  readonly steps: readonly string[];
+  readonly title: string;
+}
+
+function getEmptyStateContent(
+  filter: ExplorerFilter,
+  selectedFolderName: string | null,
+): EmptyStateContent {
   if (filter === 'folder') {
-    return selectedFolderName === null
-      ? 'Select a folder to view conversations.'
-      : `${selectedFolderName} has no conversations yet.`;
+    if (selectedFolderName === null) {
+      return {
+        description: 'Pick a folder from the tree to see its saved conversations.',
+        steps: [],
+        title: 'Select a folder to view conversations.',
+      };
+    }
+
+    return {
+      description: 'Move the current conversation into this folder when it is detected.',
+      steps: ['Open a ChatGPT conversation.', 'Use the current conversation dropdown above.'],
+      title: `${selectedFolderName} has no conversations yet.`,
+    };
   }
 
   if (filter === 'unassigned') {
-    return 'No unassigned conversations.';
+    return {
+      description: 'Every detected conversation is already assigned to a folder.',
+      steps: [],
+      title: 'No unassigned conversations.',
+    };
   }
 
   if (filter === 'favorites') {
-    return 'No favorite conversations yet.';
+    return {
+      description:
+        'Favorite conversations will appear here after you mark them from the action menu.',
+      steps: [],
+      title: 'No favorite conversations yet.',
+    };
   }
 
-  return 'No conversations detected yet.';
+  return {
+    description:
+      'ChatGPT Workspace could not find a conversation link on this page. This is normal on a new chat or when ChatGPT changes its sidebar markup.',
+    steps: [
+      'Open an existing ChatGPT conversation from the left sidebar.',
+      'Refresh the ChatGPT tab if the conversation is already open.',
+      'Keep using local folders; sign-in is not required for this check.',
+    ],
+    title: 'No conversations detected yet.',
+  };
 }

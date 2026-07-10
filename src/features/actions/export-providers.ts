@@ -8,7 +8,7 @@ export interface ExportProvider {
 
 export const DEFAULT_EXPORT_PROVIDERS: readonly ExportProvider[] = [
   {
-    enabled: false,
+    enabled: true,
     id: 'markdown',
     label: 'Markdown',
   },

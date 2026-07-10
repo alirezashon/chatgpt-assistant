@@ -9,6 +9,7 @@ export interface SyncConfig {
 
 export const DEFAULT_UI_PREFERENCES: UiPreferences = {
   expandedFolderIds: [],
+  onboardingDismissed: false,
   recentlyUsedFolderIds: [],
   sidebarOpen: false,
 };

@@ -11,6 +11,7 @@ import {
   openUrlInNewTab,
   writeClipboardText,
 } from '@/features/actions/action-utils';
+import { createMarkdownExport, downloadMarkdownExport } from '@/features/actions/markdown-export';
 
 export const conversationActionProvider: ActionProvider = {
   getActions(context: ActionContext): readonly ActionDefinition[] {
@@ -196,14 +197,24 @@ export const conversationActionProvider: ActionProvider = {
 };
 
 export const utilityActionProvider: ActionProvider = {
-  getActions(): readonly ActionDefinition[] {
+  getActions(context: ActionContext): readonly ActionDefinition[] {
     return [
       {
-        execute: () => Promise.resolve({ type: 'exportRequested' }),
+        disabled: context.targetIds.length === 0,
+        execute: (actionContext) => {
+          const result = createMarkdownExport(actionContext.workspace, actionContext.targetIds);
+
+          downloadMarkdownExport(result);
+
+          return Promise.resolve({
+            message: `${result.conversationCount.toString()} conversation export created.`,
+            type: 'completed',
+          });
+        },
         icon: 'external',
         id: 'export-conversation',
         kind: 'normal',
-        label: 'Export',
+        label: 'Export Markdown',
         scope: 'bulk',
       },
       {

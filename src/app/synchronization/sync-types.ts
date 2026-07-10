@@ -7,6 +7,7 @@ export type SyncStatus = 'error' | 'idle' | 'recovering' | 'restoring' | 'syncin
 
 export interface UiPreferences {
   readonly expandedFolderIds: readonly string[];
+  readonly onboardingDismissed: boolean;
   readonly recentlyUsedFolderIds: readonly string[];
   readonly sidebarOpen: boolean;
 }

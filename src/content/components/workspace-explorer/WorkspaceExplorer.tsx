@@ -17,6 +17,7 @@ import {
   WorkspaceExplorerErrorState,
   WorkspaceExplorerSkeleton,
 } from '@/content/components/workspace-explorer/WorkspaceExplorerStates';
+import { WorkspaceOnboardingPanel } from '@/content/components/workspace-explorer/WorkspaceOnboardingPanel';
 import { WorkspaceSearchPanel } from '@/content/components/workspace-explorer/WorkspaceSearchPanel';
 import { WorkspaceStatsView } from '@/content/components/workspace-explorer/WorkspaceStatsView';
 
@@ -62,6 +63,14 @@ export function WorkspaceExplorer() {
         syncError={controller.syncError}
         workspaceError={controller.workspaceError}
       />
+      {!controller.uiPreferences.onboardingDismissed ? (
+        <WorkspaceOnboardingPanel
+          hasConversation={controller.model.activeConversation !== null}
+          hasFolders={controller.workspaceState.folders.folders.length > 0}
+          onCreateFolder={controller.openCreateDialog}
+          onDismiss={controller.dismissOnboarding}
+        />
+      ) : null}
       <WorkspaceSearchPanel />
       <ActionToolbar
         selectedCount={selectedIds.length}

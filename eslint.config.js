@@ -5,7 +5,16 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: ['dist/**', 'node_modules/**', 'coverage/**', '.husky/**', 'eslint.config.js'],
+    ignores: [
+      'dist/**',
+      'node_modules/**',
+      'coverage/**',
+      'playwright-report/**',
+      'test-results/**',
+      'output/playwright/**',
+      '.husky/**',
+      'eslint.config.js',
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.strictTypeChecked.map((config) => ({

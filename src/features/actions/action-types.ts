@@ -1,6 +1,7 @@
 import type { WorkspaceRuntimeState } from '@/app/workspace';
+import type { ConversationAssignment } from '@/features/assignments';
 import type { FavoriteService } from '@/features/favorites';
-import type { EntityId } from '@/shared/types';
+import type { Chat, EntityId, Folder } from '@/shared/types';
 
 export type ActionScope = 'bulk' | 'conversation' | 'global';
 export type ActionKind = 'danger' | 'normal' | 'separator';
@@ -67,7 +68,17 @@ export interface ActionHistoryEntry {
   readonly actionId: string;
   readonly createdAt: string;
   readonly id: string;
+  readonly recovery?: ActionRecoverySnapshot;
   readonly reversible: boolean;
+  readonly targetIds: readonly EntityId[];
+}
+
+export interface ActionRecoverySnapshot {
+  readonly actionId: string;
+  readonly assignments: readonly ConversationAssignment[];
+  readonly capturedAt: string;
+  readonly conversations: readonly Chat[];
+  readonly folders: readonly Folder[];
   readonly targetIds: readonly EntityId[];
 }
 

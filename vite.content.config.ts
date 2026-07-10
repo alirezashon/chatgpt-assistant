@@ -13,9 +13,11 @@ export default defineConfig(({ mode }) => {
     define: {
       __APP_NAME__: JSON.stringify(env['VITE_APP_NAME'] ?? 'ChatGPT Workspace'),
       __APP_VERSION__: JSON.stringify(env['VITE_APP_VERSION'] ?? '0.1.0'),
+      __WORKSPACE_API_BASE_URL__: JSON.stringify(env['VITE_WORKSPACE_API_BASE_URL'] ?? ''),
       'process.env.NODE_ENV': JSON.stringify(mode === 'production' ? 'production' : 'development'),
     },
     plugins: [react(), tailwindcss()],
+    publicDir: false,
     resolve: {
       alias: {
         '@': resolve(rootDirectory, 'src'),

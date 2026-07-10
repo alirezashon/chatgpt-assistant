@@ -35,6 +35,10 @@ export class ConversationRegistry {
     return this.conversationsById.get(conversationId);
   }
 
+  public replaceConversation(conversation: Conversation): void {
+    this.conversationsById.set(conversation.id, conversation);
+  }
+
   public applyCandidates(
     candidates: readonly ConversationCandidate[],
     activeConversationId: EntityId | null,
@@ -142,11 +146,25 @@ function updateConversationFromCandidate(
   conversation: Conversation,
   candidate: ConversationCandidate,
 ): Conversation {
+  const localTitle = conversation.metadata.localTitle;
+  const title = localTitle ?? candidate.title;
+
   return {
     ...conversation,
     isActive: candidate.isActive,
-    metadata: candidate.metadata,
-    title: candidate.title,
+    metadata: {
+      ...candidate.metadata,
+      ...(localTitle === undefined
+        ? {
+            titleSource: 'provider' as const,
+          }
+        : {
+            localTitle,
+            providerTitle: candidate.title,
+            titleSource: 'local' as const,
+          }),
+    },
+    title,
     updatedAt: candidate.metadata.lastSeenAt,
     url: candidate.url,
   };

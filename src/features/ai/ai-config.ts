@@ -8,6 +8,7 @@ export interface AIConfig {
   readonly historyLimit: number;
   readonly maxCacheEntries: number;
   readonly maxConcurrentJobs: number;
+  readonly runtimeTarget: 'background-worker' | 'content-script';
 }
 
 export const DEFAULT_AI_CONFIG: AIConfig = {
@@ -18,13 +19,17 @@ export const DEFAULT_AI_CONFIG: AIConfig = {
   historyLimit: 100,
   maxCacheEntries: 250,
   maxConcurrentJobs: 1,
+  runtimeTarget: 'background-worker',
 };
 
 export const DEFAULT_AI_SETTINGS: AISettings = {
   cacheEnabled: true,
   enabled: false,
+  externalProcessingConsentAt: null,
+  jobRuntimeTarget: DEFAULT_AI_CONFIG.runtimeTarget,
   localOnly: true,
   maxConcurrentJobs: DEFAULT_AI_CONFIG.maxConcurrentJobs,
   providerId: null,
   requireExplicitConsent: true,
+  userOwnedKeysEnabled: false,
 };

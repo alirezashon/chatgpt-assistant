@@ -47,6 +47,7 @@ export class AITaskManager {
       priority,
       progress: 0,
       request,
+      runtimeTarget: this.store.getState().settings.jobRuntimeTarget,
       status: 'queued',
       updatedAt: now,
     };

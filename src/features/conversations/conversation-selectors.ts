@@ -2,12 +2,30 @@ export const CONVERSATION_SELECTOR_VALUES = {
   activeConversationLinks: [
     'a[aria-current="page"][href*="/c/"]',
     'a[aria-current="page"][href*="/chat/"]',
+    'a[aria-selected="true"][href*="/c/"]',
+    'a[aria-selected="true"][href*="/chat/"]',
+    'a[data-active="true"][href*="/c/"]',
+    'a[data-active="true"][href*="/chat/"]',
+    'nav a[href*="/c/"][class*="active"]',
+    'nav a[href*="/chat/"][class*="active"]',
     'a.bg-token-sidebar-surface-secondary[href*="/c/"]',
     'a.bg-token-sidebar-surface-secondary[href*="/chat/"]',
   ],
-  conversationLinks: ['a[href*="/c/"]', 'a[href*="/chat/"]'],
+  conversationLinks: [
+    'a[href*="/c/"]',
+    'a[href*="/chat/"]',
+    'nav a[href^="/c/"]',
+    'nav a[href^="/chat/"]',
+  ],
   extensionHost: '#chatgpt-workspace-root',
-  titleCandidates: ['main h1', 'h1', 'title'],
+  titleCandidates: [
+    'main h1',
+    '[data-testid="conversation-title"]',
+    '[data-testid="thread-title"]',
+    '[aria-label="Conversation title"]',
+    'h1',
+    'title',
+  ],
 } as const;
 
 export class ConversationSelectors {
@@ -27,6 +45,19 @@ export class ConversationSelectors {
 
   public getDocumentTitle(): string {
     return this.document.title;
+  }
+
+  public getPageTitleCandidate(): string {
+    for (const selector of CONVERSATION_SELECTOR_VALUES.titleCandidates) {
+      const element = this.document.querySelector(selector);
+      const title = element?.textContent.trim();
+
+      if (title !== undefined && title.length > 0) {
+        return title;
+      }
+    }
+
+    return this.getDocumentTitle();
   }
 
   public isInsideExtensionHost(node: Node): boolean {

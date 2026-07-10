@@ -204,6 +204,12 @@ export class ActionEngine {
         conversation.id === conversationId
           ? {
               ...conversation,
+              metadata: {
+                ...conversation.metadata,
+                localTitle: normalizedTitle,
+                providerTitle: conversation.metadata.providerTitle ?? conversation.title,
+                titleSource: 'local',
+              },
               title: normalizedTitle,
               updatedAt: now,
             }
@@ -217,6 +223,12 @@ export class ActionEngine {
           conversation.id === conversationId
             ? {
                 ...conversation,
+                metadata: {
+                  ...conversation.metadata,
+                  localTitle: normalizedTitle,
+                  providerTitle: conversation.metadata.providerTitle ?? conversation.title,
+                  titleSource: 'local',
+                },
                 title: normalizedTitle,
                 updatedAt: now,
               }

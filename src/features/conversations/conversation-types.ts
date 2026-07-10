@@ -5,6 +5,9 @@ export type ConversationStatus = 'error' | 'idle' | 'observing' | 'ready';
 export interface ConversationMetadata {
   readonly detectedFrom: 'active-url' | 'conversation-list' | 'unknown';
   readonly lastSeenAt: ISODateTimeString;
+  readonly localTitle?: string;
+  readonly providerTitle?: string;
+  readonly titleSource?: 'local' | 'provider';
 }
 
 export interface Conversation {

@@ -6,9 +6,29 @@ import { PRIVACY_PROMISES } from '@/constants/privacy-promises';
 import { RELEASE_NOTES } from '@/constants/release-notes';
 import { DEFAULT_SETTINGS } from '@/constants/settings';
 import { STORAGE_KEYS } from '@/constants/storage';
+import { SUPPORT_LINKS } from '@/constants/support-links';
+import {
+  AI_PRIVACY_COPY,
+  StorageAIRepository,
+  clearLocalAICache,
+  inspectLocalAICache,
+  type AICacheInspection,
+} from '@/features/ai';
+import {
+  createSignedInStateFromSubscription,
+  createWorkspaceBackendClientFromEnv,
+} from '@/features/billing';
+import {
+  clearLocalErrorReports,
+  createLocalDiagnosticBundle,
+  readLocalErrorReports,
+  stringifyLocalDiagnosticBundle,
+  type LocalErrorReport,
+} from '@/features/diagnostics';
 import {
   DEFAULT_ENTITLEMENT_STATE,
   PREMIUM_FEATURES,
+  createSignedOutEntitlementState,
   getFeatureDefinition,
   getPlanDefinition,
   requiresSignInForFeature,
@@ -24,12 +44,33 @@ import {
 } from '@/storage';
 import type { WorkspaceSettings } from '@/shared/types';
 
-type SaveStatus = 'error' | 'exporting' | 'idle' | 'importing' | 'ready' | 'saving';
+type SaveStatus =
+  | 'clearing-diagnostics'
+  | 'clearing-ai-cache'
+  | 'error'
+  | 'exporting'
+  | 'exporting-diagnostics'
+  | 'idle'
+  | 'importing'
+  | 'inspecting-ai-cache'
+  | 'opening-billing'
+  | 'ready'
+  | 'refreshing-subscription'
+  | 'saving'
+  | 'signing-in'
+  | 'signing-out';
 
 export function OptionsApp() {
   const storage = useMemo(() => createStorageDriver(), []);
+  const aiRepository = useMemo(
+    () => (storage === null ? null : new StorageAIRepository(storage)),
+    [storage],
+  );
+  const backendClient = useMemo(() => createWorkspaceBackendClientFromEnv(), []);
   const backupInputRef = useRef<HTMLInputElement | null>(null);
+  const [aiCacheInspection, setAICacheInspection] = useState<AICacheInspection | null>(null);
   const [entitlements, setEntitlements] = useState<EntitlementState>(DEFAULT_ENTITLEMENT_STATE);
+  const [diagnostics, setDiagnostics] = useState<readonly LocalErrorReport[]>([]);
   const [settings, setSettings] = useState<WorkspaceSettings>(DEFAULT_SETTINGS);
   const [status, setStatus] = useState<SaveStatus>('idle');
   const [message, setMessage] = useState<string>('Loading settings...');
@@ -46,16 +87,21 @@ export function OptionsApp() {
 
       try {
         await migrateStorage(storage);
-        const [storedSettings, storedEntitlements] = await Promise.all([
-          storage.get<WorkspaceSettings>(STORAGE_KEYS.settings),
-          storage.get<EntitlementState>(STORAGE_KEYS.entitlements),
-        ]);
+        const [storedSettings, storedEntitlements, storedDiagnostics, storedAICacheInspection] =
+          await Promise.all([
+            storage.get<WorkspaceSettings>(STORAGE_KEYS.settings),
+            storage.get<EntitlementState>(STORAGE_KEYS.entitlements),
+            readLocalErrorReports(storage),
+            aiRepository === null ? Promise.resolve(null) : inspectLocalAICache(aiRepository),
+          ]);
 
         if (cancelled) {
           return;
         }
 
         setEntitlements({ ...DEFAULT_ENTITLEMENT_STATE, ...storedEntitlements });
+        setAICacheInspection(storedAICacheInspection);
+        setDiagnostics(storedDiagnostics);
         setSettings({ ...DEFAULT_SETTINGS, ...storedSettings });
         setStatus('ready');
         setMessage('Settings are stored locally in Chrome.');
@@ -74,7 +120,7 @@ export function OptionsApp() {
     return () => {
       cancelled = true;
     };
-  }, [storage]);
+  }, [aiRepository, storage]);
 
   async function saveSettings(nextSettings: WorkspaceSettings): Promise<void> {
     setSettings(nextSettings);
@@ -98,17 +144,31 @@ export function OptionsApp() {
     }
   }
 
+  async function saveEntitlements(nextEntitlements: EntitlementState): Promise<void> {
+    setEntitlements(nextEntitlements);
+
+    if (storage === null) {
+      setStatus('error');
+      setMessage('Account storage is unavailable outside the installed extension.');
+      return;
+    }
+
+    await storage.set(STORAGE_KEYS.entitlements, nextEntitlements);
+  }
+
   async function reloadLocalState(): Promise<void> {
     if (storage === null) {
       return;
     }
 
-    const [storedSettings, storedEntitlements] = await Promise.all([
+    const [storedSettings, storedEntitlements, storedDiagnostics] = await Promise.all([
       storage.get<WorkspaceSettings>(STORAGE_KEYS.settings),
       storage.get<EntitlementState>(STORAGE_KEYS.entitlements),
+      readLocalErrorReports(storage),
     ]);
 
     setEntitlements({ ...DEFAULT_ENTITLEMENT_STATE, ...storedEntitlements });
+    setDiagnostics(storedDiagnostics);
     setSettings({ ...DEFAULT_SETTINGS, ...storedSettings });
   }
 
@@ -164,9 +224,209 @@ export function OptionsApp() {
     }
   }
 
+  async function exportDiagnostics(): Promise<void> {
+    if (storage === null) {
+      setStatus('error');
+      setMessage('Diagnostics are unavailable outside the installed extension.');
+      return;
+    }
+
+    setStatus('exporting-diagnostics');
+    setMessage('Preparing local diagnostics...');
+
+    try {
+      const bundle = await createLocalDiagnosticBundle(storage);
+      downloadTextFile(
+        stringifyLocalDiagnosticBundle(bundle),
+        `chatgpt-workspace-diagnostics-${bundle.exportedAt.slice(0, 10)}.json`,
+        'application/json',
+      );
+      setDiagnostics(bundle.reports);
+      setStatus('ready');
+      setMessage('Diagnostics downloaded. Review the file before sharing it.');
+    } catch (error) {
+      setStatus('error');
+      setMessage(error instanceof Error ? error.message : 'Failed to export diagnostics.');
+    }
+  }
+
+  async function clearDiagnostics(): Promise<void> {
+    if (storage === null) {
+      setStatus('error');
+      setMessage('Diagnostics are unavailable outside the installed extension.');
+      return;
+    }
+
+    setStatus('clearing-diagnostics');
+    setMessage('Clearing local diagnostics...');
+
+    try {
+      await clearLocalErrorReports(storage);
+      setDiagnostics([]);
+      setStatus('ready');
+      setMessage('Local diagnostics cleared.');
+    } catch (error) {
+      setStatus('error');
+      setMessage(error instanceof Error ? error.message : 'Failed to clear diagnostics.');
+    }
+  }
+
+  async function inspectAICache(): Promise<void> {
+    if (aiRepository === null) {
+      setStatus('error');
+      setMessage('AI cache is unavailable outside the installed extension.');
+      return;
+    }
+
+    setStatus('inspecting-ai-cache');
+    setMessage('Inspecting local AI cache...');
+
+    try {
+      setAICacheInspection(await inspectLocalAICache(aiRepository));
+      setStatus('ready');
+      setMessage('AI cache inspected.');
+    } catch (error) {
+      setStatus('error');
+      setMessage(error instanceof Error ? error.message : 'Failed to inspect AI cache.');
+    }
+  }
+
+  async function clearAICache(): Promise<void> {
+    if (aiRepository === null) {
+      setStatus('error');
+      setMessage('AI cache is unavailable outside the installed extension.');
+      return;
+    }
+
+    setStatus('clearing-ai-cache');
+    setMessage('Clearing local AI cache...');
+
+    try {
+      setAICacheInspection(await clearLocalAICache(aiRepository));
+      setStatus('ready');
+      setMessage('Local AI cache cleared.');
+    } catch (error) {
+      setStatus('error');
+      setMessage(error instanceof Error ? error.message : 'Failed to clear AI cache.');
+    }
+  }
+
+  async function signIn(): Promise<void> {
+    if (backendClient === null) {
+      setStatus('error');
+      setMessage('Set VITE_WORKSPACE_API_BASE_URL to enable account sign-in.');
+      return;
+    }
+
+    setStatus('signing-in');
+    setMessage('Opening secure sign-in...');
+
+    try {
+      const session = await backendClient.createLoginSession();
+
+      window.open(session.loginUrl, '_blank', 'noopener,noreferrer');
+      setStatus('ready');
+      setMessage('Sign-in opened. Return here after completing account connection.');
+    } catch (error) {
+      setStatus('error');
+      setMessage(error instanceof Error ? error.message : 'Failed to start sign-in.');
+    }
+  }
+
+  async function signOut(): Promise<void> {
+    setStatus('signing-out');
+    setMessage('Signing out...');
+
+    try {
+      if (backendClient !== null && entitlements.accountId !== null) {
+        await backendClient.logout(entitlements.accountId);
+      }
+
+      await saveEntitlements(createSignedOutEntitlementState());
+      setStatus('ready');
+      setMessage('Signed out. Free Local remains available.');
+    } catch (error) {
+      setStatus('error');
+      setMessage(error instanceof Error ? error.message : 'Failed to sign out.');
+    }
+  }
+
+  async function refreshSubscription(): Promise<void> {
+    if (backendClient === null) {
+      setStatus('error');
+      setMessage('Set VITE_WORKSPACE_API_BASE_URL to refresh subscription status.');
+      return;
+    }
+
+    if (entitlements.accountId === null) {
+      setStatus('error');
+      setMessage('Sign in before refreshing subscription status.');
+      return;
+    }
+
+    setStatus('refreshing-subscription');
+    setMessage('Refreshing subscription status...');
+
+    try {
+      const subscription = await backendClient.getSubscriptionStatus(entitlements.accountId);
+
+      await saveEntitlements(createSignedInStateFromSubscription(entitlements, subscription));
+      setStatus('ready');
+      setMessage(`Subscription status refreshed: ${subscription.status}.`);
+    } catch (error) {
+      setStatus('error');
+      setMessage(error instanceof Error ? error.message : 'Failed to refresh subscription.');
+    }
+  }
+
+  async function openBillingPortal(): Promise<void> {
+    if (!entitlements.signedIn || entitlements.accountId === null) {
+      setStatus('error');
+      setMessage('Sign in before opening the billing portal.');
+      return;
+    }
+
+    setStatus('opening-billing');
+    setMessage('Opening billing portal...');
+
+    try {
+      let portalUrl = entitlements.billingPortalUrl;
+
+      if (portalUrl === null) {
+        if (backendClient === null) {
+          throw new Error('Set VITE_WORKSPACE_API_BASE_URL to open the billing portal.');
+        }
+
+        const session = await backendClient.createBillingPortalSession(entitlements.accountId);
+        portalUrl = session.url;
+        await saveEntitlements({
+          ...entitlements,
+          billingPortalUrl: portalUrl,
+        });
+      }
+
+      window.open(portalUrl, '_blank', 'noopener,noreferrer');
+      setStatus('ready');
+      setMessage('Billing portal opened.');
+    } catch (error) {
+      setStatus('error');
+      setMessage(error instanceof Error ? error.message : 'Failed to open billing portal.');
+    }
+  }
+
   const canPersist = storage !== null;
+  const accountControlsDisabled =
+    !canPersist ||
+    status === 'signing-in' ||
+    status === 'signing-out' ||
+    status === 'refreshing-subscription' ||
+    status === 'opening-billing';
   const currentPlan = getPlanDefinition(entitlements.planId);
   const dataControlsDisabled = !canPersist || status === 'exporting' || status === 'importing';
+  const diagnosticsControlsDisabled =
+    !canPersist || status === 'exporting-diagnostics' || status === 'clearing-diagnostics';
+  const aiCacheControlsDisabled =
+    !canPersist || status === 'inspecting-ai-cache' || status === 'clearing-ai-cache';
   const freePlan = getPlanDefinition('free-local');
   const freePreviewItems = freePlan.features.slice(0, 5);
   const latestReleaseNote = RELEASE_NOTES[0];
@@ -220,6 +480,17 @@ export function OptionsApp() {
                   </p>
                   <p className="mt-1 text-xl font-semibold">{currentPlan.name}</p>
                   <p className="mt-1 text-xs text-slate-500">{currentPlan.description}</p>
+                  <p className="mt-3 text-xs font-medium uppercase tracking-wide text-slate-500">
+                    Account
+                  </p>
+                  <p className="mt-1 text-sm text-slate-700">
+                    {entitlements.signedIn
+                      ? (entitlements.accountEmail ?? 'Connected account')
+                      : 'Not signed in'}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Subscription: {entitlements.subscriptionStatus}
+                  </p>
                 </div>
               </div>
 
@@ -270,25 +541,64 @@ export function OptionsApp() {
                       </li>
                     ))}
                   </ul>
-                  <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                    <button
-                      className="h-10 rounded-md bg-white px-4 text-sm font-semibold text-slate-950 disabled:opacity-70"
-                      disabled
-                      type="button"
-                    >
-                      Sign in to upgrade
-                    </button>
-                    <button
-                      className="h-10 rounded-md border border-white/30 px-4 text-sm font-semibold text-white disabled:opacity-70"
-                      disabled
-                      type="button"
-                    >
-                      Compare plans
-                    </button>
-                  </div>
+                  {entitlements.signedIn ? (
+                    <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                      <button
+                        className="h-10 rounded-md bg-white px-4 text-sm font-semibold text-slate-950 disabled:opacity-70"
+                        disabled={accountControlsDisabled}
+                        type="button"
+                        onClick={() => {
+                          void refreshSubscription();
+                        }}
+                      >
+                        Refresh status
+                      </button>
+                      <button
+                        className="h-10 rounded-md border border-white/30 px-4 text-sm font-semibold text-white disabled:opacity-70"
+                        disabled={accountControlsDisabled}
+                        type="button"
+                        onClick={() => {
+                          void openBillingPortal();
+                        }}
+                      >
+                        Billing portal
+                      </button>
+                      <button
+                        className="h-10 rounded-md border border-white/30 px-4 text-sm font-semibold text-white disabled:opacity-70"
+                        disabled={accountControlsDisabled}
+                        type="button"
+                        onClick={() => {
+                          void signOut();
+                        }}
+                      >
+                        Sign out
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                      <button
+                        className="h-10 rounded-md bg-white px-4 text-sm font-semibold text-slate-950 disabled:opacity-70"
+                        disabled={accountControlsDisabled}
+                        type="button"
+                        onClick={() => {
+                          void signIn();
+                        }}
+                      >
+                        Sign in to upgrade
+                      </button>
+                      <button
+                        className="h-10 rounded-md border border-white/30 px-4 text-sm font-semibold text-white disabled:opacity-70"
+                        disabled
+                        type="button"
+                      >
+                        Compare plans
+                      </button>
+                    </div>
+                  )}
                   <p className="mt-3 text-xs leading-5 text-slate-400">
-                    Sign-in is only needed for paid features, cloud sync, billing, and external AI
-                    usage.
+                    {backendClient === null
+                      ? 'Backend URL is not configured yet. Free Local keeps working.'
+                      : 'Sign-in is only needed for paid features, cloud sync, billing, and external AI usage.'}
                   </p>
                 </div>
               </div>
@@ -427,11 +737,15 @@ export function OptionsApp() {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-sm font-medium">Provider calls</p>
-                <p className="mt-1 text-sm text-slate-600">No external AI provider is connected.</p>
+                <p className="mt-1 text-sm text-slate-600">{AI_PRIVACY_COPY.consent}</p>
               </div>
               <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm font-medium text-slate-600">
                 Off
               </span>
+            </div>
+            <div className="grid gap-3 rounded-md border border-slate-200 bg-slate-50 p-3 text-xs leading-5 text-slate-600">
+              <p>{AI_PRIVACY_COPY.localDefault}</p>
+              <p>{AI_PRIVACY_COPY.providerKeys}</p>
             </div>
             <button
               className="h-10 rounded-md border border-slate-300 px-4 text-sm font-medium text-slate-500"
@@ -440,6 +754,40 @@ export function OptionsApp() {
             >
               Configure provider
             </button>
+            <div className="grid gap-3 rounded-md border border-slate-200 bg-white p-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium text-slate-950">Local AI cache</p>
+                  <p className="mt-1 text-xs leading-5 text-slate-600">
+                    {aiCacheInspection === null
+                      ? 'Cache has not been inspected yet.'
+                      : `${aiCacheInspection.entryCount.toString()} entries across ${aiCacheInspection.taskTypes.length.toString()} task types.`}
+                  </p>
+                </div>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <button
+                    className="h-9 rounded-md border border-slate-300 px-3 text-sm font-medium text-slate-800 transition hover:border-slate-400 hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-500"
+                    disabled={aiCacheControlsDisabled}
+                    type="button"
+                    onClick={() => {
+                      void inspectAICache();
+                    }}
+                  >
+                    Inspect cache
+                  </button>
+                  <button
+                    className="h-9 rounded-md border border-slate-300 px-3 text-sm font-medium text-slate-800 transition hover:border-slate-400 hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-500"
+                    disabled={aiCacheControlsDisabled || aiCacheInspection?.entryCount === 0}
+                    type="button"
+                    onClick={() => {
+                      void clearAICache();
+                    }}
+                  >
+                    Clear cache
+                  </button>
+                </div>
+              </div>
+            </div>
             <div className="grid gap-3 border-t border-slate-100 pt-4">
               {PRIVACY_PROMISES.map((promise) => (
                 <div
@@ -462,6 +810,53 @@ export function OptionsApp() {
                   <p className="mt-2 text-xs leading-5 text-slate-600">{promise.description}</p>
                 </div>
               ))}
+            </div>
+          </div>
+        </section>
+
+        <section
+          aria-labelledby="diagnostics-heading"
+          className="grid gap-5 border-b border-slate-200 pb-8 md:grid-cols-[220px_1fr]"
+        >
+          <div>
+            <h2 id="diagnostics-heading" className="text-base font-semibold">
+              Diagnostics
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">Local error reporting.</p>
+          </div>
+          <div className="grid gap-4 rounded-lg border border-slate-200 bg-white p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium">Local error reports</p>
+                <p className="mt-1 text-sm leading-6 text-slate-600">
+                  Error reports stay in Chrome storage and are never uploaded automatically.
+                </p>
+              </div>
+              <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm font-medium text-slate-600">
+                {diagnostics.length} saved
+              </span>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <button
+                className="h-10 rounded-md border border-slate-300 px-4 text-sm font-medium text-slate-800 transition hover:border-slate-400 hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-500"
+                disabled={diagnosticsControlsDisabled}
+                type="button"
+                onClick={() => {
+                  void exportDiagnostics();
+                }}
+              >
+                Export diagnostics
+              </button>
+              <button
+                className="h-10 rounded-md border border-slate-300 px-4 text-sm font-medium text-slate-800 transition hover:border-slate-400 hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-500"
+                disabled={diagnosticsControlsDisabled || diagnostics.length === 0}
+                type="button"
+                onClick={() => {
+                  void clearDiagnostics();
+                }}
+              >
+                Clear diagnostics
+              </button>
             </div>
           </div>
         </section>
@@ -584,7 +979,7 @@ export function OptionsApp() {
 
         <section
           aria-labelledby="keyboard-shortcuts-heading"
-          className="grid gap-5 md:grid-cols-[220px_1fr]"
+          className="grid gap-5 border-b border-slate-200 pb-8 md:grid-cols-[220px_1fr]"
         >
           <div>
             <h2 id="keyboard-shortcuts-heading" className="text-base font-semibold">
@@ -616,14 +1011,39 @@ export function OptionsApp() {
             ))}
           </div>
         </section>
+
+        <section aria-labelledby="support-heading" className="grid gap-5 md:grid-cols-[220px_1fr]">
+          <div>
+            <h2 id="support-heading" className="text-base font-semibold">
+              Support
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">Help and release documents.</p>
+          </div>
+          <div className="grid gap-3 rounded-lg border border-slate-200 bg-white p-5">
+            {SUPPORT_LINKS.map((link) => (
+              <a
+                key={link.label}
+                className="rounded-md border border-slate-200 bg-slate-50 p-3 transition hover:border-slate-300 hover:bg-white focus-visible:ring-4 focus-visible:ring-slate-200 focus-visible:outline-none"
+                href={link.href}
+                rel="noreferrer"
+                target={link.href.startsWith('mailto:') ? undefined : '_blank'}
+              >
+                <span className="block text-sm font-medium text-slate-950">{link.label}</span>
+                <span className="mt-1 block text-xs leading-5 text-slate-600">
+                  {link.description}
+                </span>
+              </a>
+            ))}
+          </div>
+        </section>
       </div>
     </main>
   );
 }
 
-function downloadTextFile(text: string, filename: string): void {
+function downloadTextFile(text: string, filename: string, type = 'application/json'): void {
   const blob = new Blob([text], {
-    type: 'application/json',
+    type,
   });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');

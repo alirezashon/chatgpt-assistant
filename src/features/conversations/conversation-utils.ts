@@ -3,6 +3,8 @@ import type { EntityId } from '@/shared/types';
 const CONVERSATION_PATH_PATTERNS: readonly RegExp[] = [
   /^\/c\/(?<id>[^/?#]+)/u,
   /^\/chat\/(?<id>[^/?#]+)/u,
+  /^\/g\/[^/?#]+\/c\/(?<id>[^/?#]+)/u,
+  /^\/g\/[^/?#]+\/chat\/(?<id>[^/?#]+)/u,
 ];
 
 export function normalizeConversationTitle(title: string): string {

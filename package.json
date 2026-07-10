@@ -6,9 +6,10 @@
   "private": true,
   "scripts": {
     "dev": "vite --mode development",
-    "build": "tsc --noEmit && vite build && vite build --config vite.content.config.ts",
+    "build": "npm run store:assets && tsc --noEmit && vite build && vite build --config vite.content.config.ts",
     "bundle:size": "node scripts/report-bundle-size.mjs",
     "preview": "vite preview",
+    "store:assets": "node scripts/generate-store-assets.mjs",
     "test": "vitest run",
     "test:e2e": "npm run build && playwright test",
     "test:watch": "vitest",

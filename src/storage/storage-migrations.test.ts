@@ -109,6 +109,29 @@ describe('storage migrations', () => {
     });
   });
 
+  it('normalizes signed-in account identity for Pro entitlements', async () => {
+    const storage = new MemoryStorageDriver({
+      [STORAGE_KEYS.entitlements]: {
+        accountEmail: 'pro@example.com',
+        accountId: 'acct_123',
+        planId: 'pro',
+        signedIn: true,
+      },
+    });
+
+    await migrateStorage(storage);
+
+    expect(await storage.get(STORAGE_KEYS.entitlements)).toEqual({
+      accountEmail: 'pro@example.com',
+      accountId: 'acct_123',
+      billingPortalUrl: null,
+      planId: 'pro',
+      signedIn: true,
+      subscriptionCheckedAt: null,
+      subscriptionStatus: 'unknown',
+    });
+  });
+
   it('refuses storage written by a newer extension version', async () => {
     const storage = new MemoryStorageDriver({
       [STORAGE_KEYS.schemaVersion]: STORAGE_SCHEMA_VERSION + 1,

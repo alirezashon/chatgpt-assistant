@@ -13,17 +13,17 @@ export const DEFAULT_EXPORT_PROVIDERS: readonly ExportProvider[] = [
     label: 'Markdown',
   },
   {
-    enabled: false,
+    enabled: true,
     id: 'json',
     label: 'JSON',
   },
   {
-    enabled: false,
+    enabled: true,
     id: 'html',
     label: 'HTML',
   },
   {
-    enabled: false,
+    enabled: true,
     id: 'pdf',
     label: 'PDF',
   },

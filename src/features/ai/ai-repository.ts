@@ -1,5 +1,6 @@
 import { STORAGE_KEYS } from '@/constants/storage';
 import { DEFAULT_AI_SETTINGS } from '@/features/ai/ai-config';
+import { normalizeAISettings } from '@/features/ai/ai-settings';
 import type { AICacheEntry, AIHistoryEntry, AISettings } from '@/features/ai/ai-types';
 import { isKnownAITaskType } from '@/features/ai/ai-utils';
 import type { StorageDriver } from '@/storage';
@@ -28,7 +29,7 @@ export class StorageAIRepository implements AIRepository {
       return DEFAULT_AI_SETTINGS;
     }
 
-    return settings;
+    return normalizeAISettings(settings);
   }
 
   public async saveSettings(settings: AISettings): Promise<void> {
@@ -78,10 +79,18 @@ function isAISettings(value: unknown): value is AISettings {
   return (
     typeof candidate['cacheEnabled'] === 'boolean' &&
     typeof candidate['enabled'] === 'boolean' &&
+    (typeof candidate['externalProcessingConsentAt'] === 'string' ||
+      candidate['externalProcessingConsentAt'] === null ||
+      candidate['externalProcessingConsentAt'] === undefined) &&
+    (candidate['jobRuntimeTarget'] === 'background-worker' ||
+      candidate['jobRuntimeTarget'] === 'content-script' ||
+      candidate['jobRuntimeTarget'] === undefined) &&
     typeof candidate['localOnly'] === 'boolean' &&
     typeof candidate['maxConcurrentJobs'] === 'number' &&
     (typeof candidate['providerId'] === 'string' || candidate['providerId'] === null) &&
-    typeof candidate['requireExplicitConsent'] === 'boolean'
+    typeof candidate['requireExplicitConsent'] === 'boolean' &&
+    (typeof candidate['userOwnedKeysEnabled'] === 'boolean' ||
+      candidate['userOwnedKeysEnabled'] === undefined)
   );
 }
 

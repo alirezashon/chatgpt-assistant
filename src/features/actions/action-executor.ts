@@ -39,7 +39,7 @@ export class ActionExecutor {
 
     try {
       const outcome = await action.execute(context);
-      const history = this.history.record(action, context.targetIds);
+      const history = this.history.record(action, context);
 
       this.events.emit('actionCompleted', {
         action,

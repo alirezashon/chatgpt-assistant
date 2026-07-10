@@ -104,12 +104,43 @@ function normalizeEntitlementState(value: StorageValue): EntitlementState {
   const signedIn = planId === 'pro' && value['signedIn'] === true;
   const accountEmail =
     signedIn && typeof value['accountEmail'] === 'string' ? value['accountEmail'] : null;
+  const accountId = signedIn && typeof value['accountId'] === 'string' ? value['accountId'] : null;
+  const billingPortalUrl =
+    signedIn && typeof value['billingPortalUrl'] === 'string' ? value['billingPortalUrl'] : null;
+  const subscriptionCheckedAt =
+    signedIn && typeof value['subscriptionCheckedAt'] === 'string'
+      ? value['subscriptionCheckedAt']
+      : null;
+  const subscriptionStatus = normalizeSubscriptionStatus(value['subscriptionStatus'], signedIn);
 
   return {
     accountEmail,
+    accountId,
+    billingPortalUrl,
     planId,
     signedIn,
+    subscriptionCheckedAt,
+    subscriptionStatus,
   };
+}
+
+function normalizeSubscriptionStatus(
+  value: StorageValue,
+  signedIn: boolean,
+): EntitlementState['subscriptionStatus'] {
+  if (
+    value === 'active' ||
+    value === 'canceled' ||
+    value === 'expired' ||
+    value === 'free' ||
+    value === 'past-due' ||
+    value === 'trialing' ||
+    value === 'unknown'
+  ) {
+    return value;
+  }
+
+  return signedIn ? 'unknown' : DEFAULT_ENTITLEMENT_STATE.subscriptionStatus;
 }
 
 function clampSidebarWidth(value: number): number {

@@ -31,6 +31,7 @@ export type AIActionId =
   | 'translate';
 
 export type AIJobPriority = 'critical' | 'high' | 'low' | 'normal';
+export type AIJobRuntimeTarget = 'background-worker' | 'content-script';
 export type AIJobStatus = 'cancelled' | 'failed' | 'queued' | 'retrying' | 'running' | 'succeeded';
 export type AIPlatformStatus = 'disabled' | 'error' | 'idle' | 'ready' | 'running';
 
@@ -104,6 +105,7 @@ export interface AIJob {
   readonly progress: number;
   readonly request: AITaskRequest;
   readonly result?: AITaskResult;
+  readonly runtimeTarget: AIJobRuntimeTarget;
   readonly startedAt?: ISODateTimeString;
   readonly status: AIJobStatus;
   readonly updatedAt: ISODateTimeString;
@@ -131,10 +133,13 @@ export interface AICacheEntry {
 export interface AISettings {
   readonly cacheEnabled: boolean;
   readonly enabled: boolean;
+  readonly externalProcessingConsentAt: ISODateTimeString | null;
+  readonly jobRuntimeTarget: AIJobRuntimeTarget;
   readonly localOnly: boolean;
   readonly maxConcurrentJobs: number;
   readonly providerId: string | null;
   readonly requireExplicitConsent: boolean;
+  readonly userOwnedKeysEnabled: boolean;
 }
 
 export interface AIActionDefinition {

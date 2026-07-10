@@ -11,6 +11,11 @@ import {
   openUrlInNewTab,
   writeClipboardText,
 } from '@/features/actions/action-utils';
+import {
+  createConversationExport,
+  downloadConversationExport,
+  type ConversationExportFormat,
+} from '@/features/actions/conversation-export';
 import { createMarkdownExport, downloadMarkdownExport } from '@/features/actions/markdown-export';
 
 export const conversationActionProvider: ActionProvider = {
@@ -217,6 +222,11 @@ export const utilityActionProvider: ActionProvider = {
         label: 'Export Markdown',
         scope: 'bulk',
       },
+      ...createExportActions(context, [
+        ['json', 'Export JSON'],
+        ['html', 'Export HTML'],
+        ['pdf', 'Export PDF'],
+      ]),
       {
         disabled: true,
         execute: () => Promise.resolve({ type: 'completed' }),
@@ -256,6 +266,34 @@ export const utilityActionProvider: ActionProvider = {
   },
   id: 'utility-actions',
 };
+
+function createExportActions(
+  context: ActionContext,
+  formats: readonly (readonly [ConversationExportFormat, string])[],
+): readonly ActionDefinition[] {
+  return formats.map(([format, label]) => ({
+    disabled: context.targetIds.length === 0,
+    execute: (actionContext) => {
+      const result = createConversationExport(
+        actionContext.workspace,
+        actionContext.targetIds,
+        format,
+      );
+
+      downloadConversationExport(result);
+
+      return Promise.resolve({
+        message: `${result.conversationCount.toString()} conversation ${format.toUpperCase()} export created.`,
+        type: 'completed',
+      });
+    },
+    icon: 'external',
+    id: `export-${format}`,
+    kind: 'normal',
+    label,
+    scope: 'bulk',
+  }));
+}
 
 export const DEFAULT_ACTION_PROVIDERS: readonly ActionProvider[] = [
   conversationActionProvider,

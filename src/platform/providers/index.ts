@@ -22,3 +22,4 @@ export * from '@/platform/providers/provider-streaming';
 export * from '@/platform/providers/provider-telemetry';
 export * from '@/platform/providers/provider-types';
 export * from '@/platform/providers/provider-utils';
+export * from '@/platform/providers/production-provider-adapters';

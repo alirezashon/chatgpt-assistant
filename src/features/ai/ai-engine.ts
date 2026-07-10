@@ -37,6 +37,10 @@ export class AIEngine {
       throw new Error('AI is disabled.');
     }
 
+    if (settings.requireExplicitConsent && settings.externalProcessingConsentAt === null) {
+      throw new Error('External AI processing requires explicit consent.');
+    }
+
     const cacheKey = request.cacheKey;
 
     if (settings.cacheEnabled && cacheKey !== undefined) {

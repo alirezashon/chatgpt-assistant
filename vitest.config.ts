@@ -8,6 +8,7 @@ export default defineConfig({
   define: {
     __APP_NAME__: JSON.stringify('ChatGPT Workspace'),
     __APP_VERSION__: JSON.stringify('0.1.0'),
+    __WORKSPACE_API_BASE_URL__: JSON.stringify(''),
   },
   resolve: {
     alias: {

@@ -3,6 +3,7 @@ export type ProviderErrorCode =
   | 'PROVIDER_CAPABILITY_UNAVAILABLE'
   | 'PROVIDER_DISCONNECTED'
   | 'PROVIDER_NOT_FOUND'
+  | 'PROVIDER_NOT_CONFIGURED'
   | 'PROVIDER_STREAM_FAILED';
 
 export class ProviderError extends Error {

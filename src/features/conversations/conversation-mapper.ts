@@ -64,7 +64,10 @@ export class ConversationMapper {
     activeConversationId: string | null,
     capturedAt: string,
   ): ConversationCandidate | null {
-    const normalizedUrl = normalizeConversationUrl(anchor.href, context.location.origin);
+    const normalizedUrl = normalizeConversationUrl(
+      anchor.getAttribute('href') ?? anchor.href,
+      context.location.origin,
+    );
 
     if (normalizedUrl === null) {
       return null;
@@ -83,7 +86,7 @@ export class ConversationMapper {
         detectedFrom: 'conversation-list',
         lastSeenAt: capturedAt,
       },
-      title: normalizeConversationTitle(anchor.textContent),
+      title: normalizeConversationTitle(getAnchorTitle(anchor)),
       url: normalizedUrl,
     };
   }
@@ -107,9 +110,22 @@ export class ConversationMapper {
         lastSeenAt: capturedAt,
       },
       title: normalizeConversationTitle(
-        context.document.title.replace(/ - ChatGPT$/u, '').replace(/^ChatGPT - /u, ''),
+        new ConversationSelectors(context.document)
+          .getPageTitleCandidate()
+          .replace(/ - ChatGPT$/u, '')
+          .replace(/^ChatGPT - /u, ''),
       ),
       url: normalizedUrl,
     };
   }
+}
+
+function getAnchorTitle(anchor: HTMLAnchorElement): string {
+  const textTitle = anchor.textContent.trim();
+
+  if (textTitle.length > 0) {
+    return textTitle;
+  }
+
+  return anchor.getAttribute('aria-label') ?? anchor.title;
 }

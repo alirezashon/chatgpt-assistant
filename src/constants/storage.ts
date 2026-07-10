@@ -8,6 +8,7 @@ export const STORAGE_KEYS = {
   aiHistory: `${EXTENSION_ID_PREFIX}:ai-history`,
   aiSettings: `${EXTENSION_ID_PREFIX}:ai-settings`,
   chats: `${EXTENSION_ID_PREFIX}:chats`,
+  diagnostics: `${EXTENSION_ID_PREFIX}:diagnostics`,
   entitlements: `${EXTENSION_ID_PREFIX}:entitlements`,
   favorites: `${EXTENSION_ID_PREFIX}:favorites`,
   folders: `${EXTENSION_ID_PREFIX}:folders`,

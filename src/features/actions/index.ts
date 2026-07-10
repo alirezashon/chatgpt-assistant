@@ -11,6 +11,7 @@ export * from '@/features/actions/action-registry';
 export * from '@/features/actions/action-state';
 export * from '@/features/actions/action-types';
 export * from '@/features/actions/action-utils';
+export * from '@/features/actions/conversation-export';
 export * from '@/features/actions/default-action-providers';
 export * from '@/features/actions/export-providers';
 export * from '@/features/actions/markdown-export';

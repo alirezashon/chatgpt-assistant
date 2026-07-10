@@ -5,12 +5,9 @@ extension foundation into a beta-ready and eventually paid product.
 
 ## Product Decisions
 
-- Define the free plan feature set.
-- Define the paid plan feature set.
 - Decide whether the first paid launch is subscription-only or supports lifetime licenses.
 - Decide whether billing is owned by a custom backend, Stripe Billing, Lemon Squeezy, or Chrome Web Store payments if available for the target market.
 - Choose the first supported premium AI provider flow: user API key, hosted API, or both.
-- Define privacy promises for local-only data, cloud sync, and AI processing.
 
 ## Free Plan
 
@@ -19,7 +16,6 @@ extension foundation into a beta-ready and eventually paid product.
 - Keep basic search free.
 - Keep favorites free.
 - Keep local-only persistence free.
-- Add an import/export backup for local workspace data.
 
 ## Paid Plan Ideas
 
@@ -44,6 +40,12 @@ extension foundation into a beta-ready and eventually paid product.
 - Workspace health checks that warn about broken sync, stale exports, or missing backups.
 - Guided premium workspace templates for writers, traders, developers, and agencies.
 - Conversation detection diagnostics with a shareable repair report for power users.
+- Scheduled encrypted backups to cloud storage for Pro users.
+- Usage-based AI credit packs for users who need premium AI only occasionally.
+- Priority compatibility alerts when ChatGPT UI changes affect Pro workflows.
+- Pro release channels with early access to experimental workspace tools.
+- Privacy and compliance audit exports for professional workspaces.
+- Automated release readiness audits for team workspaces.
 
 ## Monetization Infrastructure
 
@@ -56,12 +58,6 @@ extension foundation into a beta-ready and eventually paid product.
 - Add secure token storage policy.
 - Add cancellation and expired-plan handling.
 
-## Extension UX
-
-- Add clear error states for ChatGPT DOM detection failures.
-- Add release/version notes.
-- Add keyboard shortcut documentation inside settings.
-
 ## Core Feature Completion
 
 - Implement remaining export providers for PDF, JSON, HTML, and richer transcript exports.
@@ -70,7 +66,6 @@ extension foundation into a beta-ready and eventually paid product.
 - Improve cross-tab conflict handling.
 - Add undo/redo or recovery history for destructive actions.
 - Strengthen conversation detection against ChatGPT UI changes.
-- Add bundle-size reporting.
 
 ## AI and Provider Work
 
@@ -88,8 +83,6 @@ extension foundation into a beta-ready and eventually paid product.
 - Write store description and privacy disclosure.
 - Add a privacy policy.
 - Add support/contact links.
-- Add changelog.
-- Add production build checklist.
 - Add manual QA checklist.
 - Add crash/error reporting only after privacy review.
 

@@ -1,23 +1,34 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { APP_NAME, APP_VERSION } from '@/constants/app';
+import { KEYBOARD_SHORTCUTS } from '@/constants/keyboard-shortcuts';
+import { PRIVACY_PROMISES } from '@/constants/privacy-promises';
+import { RELEASE_NOTES } from '@/constants/release-notes';
 import { DEFAULT_SETTINGS } from '@/constants/settings';
 import { STORAGE_KEYS } from '@/constants/storage';
 import {
   DEFAULT_ENTITLEMENT_STATE,
   PREMIUM_FEATURES,
+  getFeatureDefinition,
   getPlanDefinition,
   requiresSignInForFeature,
   type EntitlementState,
-  type PremiumFeatureId,
 } from '@/features/entitlements';
-import { ChromeStorageDriver, migrateStorage } from '@/storage';
+import {
+  ChromeStorageDriver,
+  createLocalWorkspaceBackup,
+  migrateStorage,
+  parseLocalWorkspaceBackupText,
+  restoreLocalWorkspaceBackup,
+  stringifyLocalWorkspaceBackup,
+} from '@/storage';
 import type { WorkspaceSettings } from '@/shared/types';
 
-type SaveStatus = 'error' | 'idle' | 'ready' | 'saving';
+type SaveStatus = 'error' | 'exporting' | 'idle' | 'importing' | 'ready' | 'saving';
 
 export function OptionsApp() {
   const storage = useMemo(() => createStorageDriver(), []);
+  const backupInputRef = useRef<HTMLInputElement | null>(null);
   const [entitlements, setEntitlements] = useState<EntitlementState>(DEFAULT_ENTITLEMENT_STATE);
   const [settings, setSettings] = useState<WorkspaceSettings>(DEFAULT_SETTINGS);
   const [status, setStatus] = useState<SaveStatus>('idle');
@@ -87,10 +98,80 @@ export function OptionsApp() {
     }
   }
 
+  async function reloadLocalState(): Promise<void> {
+    if (storage === null) {
+      return;
+    }
+
+    const [storedSettings, storedEntitlements] = await Promise.all([
+      storage.get<WorkspaceSettings>(STORAGE_KEYS.settings),
+      storage.get<EntitlementState>(STORAGE_KEYS.entitlements),
+    ]);
+
+    setEntitlements({ ...DEFAULT_ENTITLEMENT_STATE, ...storedEntitlements });
+    setSettings({ ...DEFAULT_SETTINGS, ...storedSettings });
+  }
+
+  async function exportBackup(): Promise<void> {
+    if (storage === null) {
+      setStatus('error');
+      setMessage('Settings storage is unavailable outside the installed extension.');
+      return;
+    }
+
+    setStatus('exporting');
+    setMessage('Preparing local backup...');
+
+    try {
+      await migrateStorage(storage);
+      const backup = await createLocalWorkspaceBackup(storage);
+      downloadTextFile(
+        stringifyLocalWorkspaceBackup(backup),
+        `chatgpt-workspace-backup-${backup.exportedAt.slice(0, 10)}.json`,
+      );
+      setStatus('ready');
+      setMessage('Backup downloaded.');
+    } catch (error) {
+      setStatus('error');
+      setMessage(error instanceof Error ? error.message : 'Failed to export backup.');
+    }
+  }
+
+  async function importBackup(file: File): Promise<void> {
+    if (storage === null) {
+      setStatus('error');
+      setMessage('Settings storage is unavailable outside the installed extension.');
+      return;
+    }
+
+    setStatus('importing');
+    setMessage('Importing local backup...');
+
+    try {
+      const backup = parseLocalWorkspaceBackupText(await file.text());
+
+      await restoreLocalWorkspaceBackup(storage, backup);
+      await reloadLocalState();
+      setStatus('ready');
+      setMessage('Backup imported. Reload any open ChatGPT tabs to refresh the sidebar.');
+    } catch (error) {
+      setStatus('error');
+      setMessage(error instanceof Error ? error.message : 'Failed to import backup.');
+    } finally {
+      if (backupInputRef.current !== null) {
+        backupInputRef.current.value = '';
+      }
+    }
+  }
+
   const canPersist = storage !== null;
   const currentPlan = getPlanDefinition(entitlements.planId);
+  const dataControlsDisabled = !canPersist || status === 'exporting' || status === 'importing';
+  const freePlan = getPlanDefinition('free-local');
+  const freePreviewItems = freePlan.features.slice(0, 5);
+  const latestReleaseNote = RELEASE_NOTES[0];
   const proPlan = getPlanDefinition('pro');
-  const premiumPreviewItems = PREMIUM_FEATURES.slice(0, 4);
+  const premiumPreviewItems = PREMIUM_FEATURES.slice(0, 5);
 
   return (
     <main aria-label={`${APP_NAME} options`} className="min-h-screen bg-slate-50 text-slate-950">
@@ -130,7 +211,7 @@ export function OptionsApp() {
                   </h3>
                   <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
                     Your current workspace runs on the {currentPlan.name} plan. Folders, search,
-                    favorites, and local storage stay available without an account.
+                    local export, backup, and local storage stay available without an account.
                   </p>
                 </div>
                 <div className="rounded-md border border-white/80 bg-white/85 px-4 py-3 shadow-sm">
@@ -156,17 +237,13 @@ export function OptionsApp() {
                     </span>
                   </div>
                   <ul className="mt-4 grid gap-2 text-sm text-emerald-900">
-                    {[
-                      'Folders and conversation assignment',
-                      'Basic workspace search',
-                      'Favorites and local persistence',
-                    ].map((item) => (
-                      <li key={item} className="flex gap-2">
+                    {freePreviewItems.map((featureId) => (
+                      <li key={featureId} className="flex gap-2">
                         <span
                           aria-hidden="true"
                           className="mt-2 size-1.5 rounded-full bg-emerald-600"
                         />
-                        <span>{item}</span>
+                        <span>{getFeatureDefinition(featureId).name}</span>
                       </li>
                     ))}
                   </ul>
@@ -183,13 +260,13 @@ export function OptionsApp() {
                     </span>
                   </div>
                   <ul className="mt-4 grid gap-2 text-sm text-slate-200">
-                    {premiumPreviewItems.map((featureId) => (
+                    {premiumPreviewItems.slice(0, 4).map((featureId) => (
                       <li key={featureId} className="flex gap-2">
                         <span
                           aria-hidden="true"
                           className="mt-2 size-1.5 rounded-full bg-cyan-300"
                         />
-                        <span>{PREMIUM_FEATURE_LABELS[featureId]}</span>
+                        <span>{getFeatureDefinition(featureId).name}</span>
                       </li>
                     ))}
                   </ul>
@@ -220,7 +297,7 @@ export function OptionsApp() {
             <div className="grid gap-3 rounded-lg border border-slate-200 bg-white p-4 sm:grid-cols-3">
               {premiumPreviewItems.slice(0, 3).map((featureId) => (
                 <div key={featureId} className="rounded-md border border-slate-200 bg-slate-50 p-3">
-                  <p className="text-sm font-medium">{PREMIUM_FEATURE_LABELS[featureId]}</p>
+                  <p className="text-sm font-medium">{getFeatureDefinition(featureId).name}</p>
                   <p className="mt-1 text-xs leading-5 text-slate-600">
                     {requiresSignInForFeature(featureId)
                       ? 'Pro feature. Sign in only when you upgrade.'
@@ -288,6 +365,54 @@ export function OptionsApp() {
           </div>
         </section>
 
+        {latestReleaseNote === undefined ? null : (
+          <section
+            aria-labelledby="release-notes-heading"
+            className="grid gap-5 border-b border-slate-200 pb-8 md:grid-cols-[220px_1fr]"
+          >
+            <div>
+              <h2 id="release-notes-heading" className="text-base font-semibold">
+                Release Notes
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-slate-600">Current build highlights.</p>
+            </div>
+            <div className="rounded-lg border border-slate-200 bg-white p-5">
+              <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 pb-4">
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">
+                      v{latestReleaseNote.version}
+                    </span>
+                    <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                      {latestReleaseNote.label}
+                    </span>
+                  </div>
+                  <p className="mt-3 text-sm font-semibold text-slate-950">
+                    {latestReleaseNote.summary}
+                  </p>
+                </div>
+                <time
+                  className="text-sm font-medium text-slate-500"
+                  dateTime={latestReleaseNote.date}
+                >
+                  {latestReleaseNote.date}
+                </time>
+              </div>
+              <ul className="mt-4 grid gap-3 text-sm leading-6 text-slate-700">
+                {latestReleaseNote.highlights.map((highlight) => (
+                  <li key={highlight} className="flex gap-3">
+                    <span
+                      aria-hidden="true"
+                      className="mt-2 size-1.5 shrink-0 rounded-full bg-slate-400"
+                    />
+                    <span>{highlight}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        )}
+
         <section
           aria-labelledby="ai-privacy-heading"
           className="grid gap-5 border-b border-slate-200 pb-8 md:grid-cols-[220px_1fr]"
@@ -315,6 +440,29 @@ export function OptionsApp() {
             >
               Configure provider
             </button>
+            <div className="grid gap-3 border-t border-slate-100 pt-4">
+              {PRIVACY_PROMISES.map((promise) => (
+                <div
+                  key={promise.id}
+                  className="rounded-md border border-slate-200 bg-slate-50 p-3"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-sm font-medium text-slate-950">{promise.title}</p>
+                    <span
+                      className={[
+                        'rounded-full px-2.5 py-1 text-xs font-semibold',
+                        promise.status === 'local-now'
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : 'bg-slate-200 text-slate-600',
+                      ].join(' ')}
+                    >
+                      {promise.status === 'local-now' ? 'Active now' : 'Future opt-in'}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-xs leading-5 text-slate-600">{promise.description}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -387,16 +535,42 @@ export function OptionsApp() {
               {message}
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
+              <input
+                ref={backupInputRef}
+                accept="application/json,.json"
+                className="hidden"
+                type="file"
+                onChange={(event) => {
+                  const file = event.currentTarget.files?.[0];
+
+                  if (file !== undefined) {
+                    void importBackup(file);
+                  }
+                }}
+              />
               <button
-                className="h-10 rounded-md border border-slate-300 px-4 text-sm font-medium text-slate-500"
-                disabled
+                className="h-10 rounded-md border border-slate-300 px-4 text-sm font-medium text-slate-800 transition hover:border-slate-400 hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-500"
+                disabled={dataControlsDisabled}
                 type="button"
+                onClick={() => {
+                  void exportBackup();
+                }}
               >
                 Export backup
               </button>
               <button
-                className="h-10 rounded-md border border-slate-300 px-4 text-sm font-medium text-slate-800 disabled:text-slate-500"
-                disabled={!canPersist || status === 'saving'}
+                className="h-10 rounded-md border border-slate-300 px-4 text-sm font-medium text-slate-800 transition hover:border-slate-400 hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-500"
+                disabled={dataControlsDisabled}
+                type="button"
+                onClick={() => {
+                  backupInputRef.current?.click();
+                }}
+              >
+                Import backup
+              </button>
+              <button
+                className="h-10 rounded-md border border-slate-300 px-4 text-sm font-medium text-slate-800 transition hover:border-slate-400 hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-500 sm:col-span-2"
+                disabled={dataControlsDisabled || status === 'saving'}
                 type="button"
                 onClick={() => {
                   void saveSettings(DEFAULT_SETTINGS);
@@ -407,9 +581,59 @@ export function OptionsApp() {
             </div>
           </div>
         </section>
+
+        <section
+          aria-labelledby="keyboard-shortcuts-heading"
+          className="grid gap-5 md:grid-cols-[220px_1fr]"
+        >
+          <div>
+            <h2 id="keyboard-shortcuts-heading" className="text-base font-semibold">
+              Keyboard Shortcuts
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">Workspace controls.</p>
+          </div>
+          <div className="grid gap-3 rounded-lg border border-slate-200 bg-white p-5">
+            {KEYBOARD_SHORTCUTS.map((shortcut) => (
+              <div
+                key={`${shortcut.scope}-${shortcut.keys.join('-')}`}
+                className="grid gap-3 rounded-md border border-slate-200 bg-slate-50 p-3 sm:grid-cols-[1fr_auto] sm:items-center"
+              >
+                <div>
+                  <p className="text-sm font-medium text-slate-950">{shortcut.description}</p>
+                  <p className="mt-1 text-xs capitalize text-slate-500">{shortcut.scope}</p>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {shortcut.keys.map((key) => (
+                    <kbd
+                      key={key}
+                      className="rounded border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-700 shadow-sm"
+                    >
+                      {key}
+                    </kbd>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
       </div>
     </main>
   );
+}
+
+function downloadTextFile(text: string, filename: string): void {
+  const blob = new Blob([text], {
+    type: 'application/json',
+  });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.click();
+  window.setTimeout(() => {
+    URL.revokeObjectURL(url);
+  }, 0);
 }
 
 function createStorageDriver(): ChromeStorageDriver | null {
@@ -443,14 +667,3 @@ function hasChromeStorage(value: unknown): value is ChromeStorageRuntime {
 
   return candidate.storage?.local !== undefined;
 }
-
-const PREMIUM_FEATURE_LABELS: Readonly<Record<PremiumFeatureId, string>> = {
-  'advanced-bulk-actions': 'Advanced bulk actions',
-  'ai-digest': 'Weekly AI workspace digest',
-  'ai-folder-suggestions': 'AI folder suggestions',
-  'ai-summaries': 'AI conversation summaries',
-  'batch-export': 'Batch export',
-  'cloud-sync': 'Cloud sync and backup',
-  'pdf-export': 'PDF export',
-  'semantic-search': 'Semantic search',
-};

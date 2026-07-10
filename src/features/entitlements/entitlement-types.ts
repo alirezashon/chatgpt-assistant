@@ -6,14 +6,30 @@ export type PremiumFeatureId =
   | 'ai-folder-suggestions'
   | 'ai-summaries'
   | 'batch-export'
+  | 'branded-export-templates'
   | 'cloud-sync'
+  | 'duplicate-detection'
   | 'pdf-export'
+  | 'prompt-library'
   | 'semantic-search';
 
 export type FreeFeatureId =
-  'basic-search' | 'favorites' | 'folder-management' | 'local-persistence';
+  | 'basic-search'
+  | 'conversation-assignment'
+  | 'favorites'
+  | 'folder-management'
+  | 'local-backup'
+  | 'local-persistence'
+  | 'markdown-export';
 
 export type FeatureId = FreeFeatureId | PremiumFeatureId;
+
+export interface FeatureDefinition {
+  readonly description: string;
+  readonly id: FeatureId;
+  readonly name: string;
+  readonly tier: 'free' | 'premium';
+}
 
 export interface PlanDefinition {
   readonly description: string;

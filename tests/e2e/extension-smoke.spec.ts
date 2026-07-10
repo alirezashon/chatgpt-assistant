@@ -89,6 +89,25 @@ test.describe('extension smoke', () => {
     ).toBeVisible();
     await expect(page.getByText('sign-in is not required', { exact: false })).toBeVisible();
   });
+
+  test('shows a clear error when ChatGPT DOM detection fails', async ({ context, page }) => {
+    await installChromeStorageMock(context, page);
+    await routeMockChatGptPage(context);
+
+    await page.goto('https://chatgpt.com/broken-dom');
+
+    await page.getByLabel('Open ChatGPT Workspace').click();
+    await expect(page.getByLabel('ChatGPT Workspace sidebar')).toBeVisible();
+    await expect(page.getByText('Conversation detection needs attention')).toBeVisible();
+    await expect(
+      page.getByText("ChatGPT Workspace could not read this page's conversation structure.", {
+        exact: false,
+      }),
+    ).toBeVisible();
+    await expect(
+      page.getByText('ChatGPT conversation detection failed.', { exact: false }),
+    ).toBeVisible();
+  });
 });
 
 async function installChromeStorageMock(context: BrowserContext, page: Page) {
@@ -206,6 +225,35 @@ async function routeMockChatGptPage(context: BrowserContext) {
             <main>
               <h1>New chat</h1>
             </main>
+            <script src="/assets/content.js"></script>
+          </body>
+        </html>`,
+        contentType: 'text/html',
+        status: 200,
+      });
+      return;
+    }
+
+    if (requestUrl.pathname === '/broken-dom') {
+      await route.fulfill({
+        body: `<!doctype html>
+        <html lang="en">
+          <head>
+            <meta charset="utf-8" />
+            <title>Broken DOM</title>
+          </head>
+          <body>
+            <nav>
+              <a aria-current="page" href="/c/broken-dom">Broken DOM</a>
+            </nav>
+            <main>
+              <h1>Broken DOM</h1>
+            </main>
+            <script>
+              document.querySelectorAll = () => {
+                throw new Error('Simulated ChatGPT DOM failure');
+              };
+            </script>
             <script src="/assets/content.js"></script>
           </body>
         </html>`,

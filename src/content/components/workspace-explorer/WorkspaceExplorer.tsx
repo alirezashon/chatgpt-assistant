@@ -60,6 +60,7 @@ export function WorkspaceExplorer() {
     <section className="flex min-h-0 flex-1 flex-col">
       <WorkspaceExplorerHeader onCreateFolder={controller.openCreateDialog} />
       <WorkspaceExplorerErrorState
+        conversationError={controller.conversationError}
         syncError={controller.syncError}
         workspaceError={controller.workspaceError}
       />

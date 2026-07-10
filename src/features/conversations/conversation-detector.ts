@@ -50,8 +50,30 @@ export class ConversationDetector {
       window: this.window,
     });
 
-    this.disconnectObserver = observer.start();
+    let observerError: AppError | null = null;
+
+    try {
+      this.disconnectObserver = observer.start();
+    } catch (cause) {
+      observerError = createConversationDetectionError(
+        cause,
+        this.window.location.href,
+        'observer',
+      );
+      conversationStore.setState({
+        error: observerError,
+        status: 'error',
+      });
+    }
+
     this.detect();
+
+    if (observerError !== null) {
+      conversationStore.setState({
+        error: observerError,
+        status: 'error',
+      });
+    }
   }
 
   public stop(): void {
@@ -75,9 +97,7 @@ export class ConversationDetector {
       this.service.applySnapshot(snapshot);
     } catch (cause) {
       conversationStore.setState({
-        error: new AppError('CONVERSATION_DETECTION_ERROR', 'Conversation detection failed.', {
-          cause,
-        }),
+        error: createConversationDetectionError(cause, this.window.location.href, 'snapshot'),
         status: 'error',
       });
     } finally {
@@ -95,4 +115,18 @@ export function startConversationDetection(): void {
 
 function createCurrentDate(): Date {
   return new Date();
+}
+
+function createConversationDetectionError(
+  cause: unknown,
+  pageUrl: string,
+  phase: 'observer' | 'snapshot',
+): AppError {
+  return new AppError('CONVERSATION_DETECTION_ERROR', 'ChatGPT conversation detection failed.', {
+    cause,
+    context: {
+      pageUrl,
+      phase,
+    },
+  });
 }

@@ -245,6 +245,7 @@ export function useWorkspaceExplorerController() {
     closeDeleteDialog,
     closeFolderDialog,
     confirmDeleteFolder,
+    conversationError: workspaceState.conversations.error,
     deleteError,
     deleteTarget,
     dismissOnboarding,

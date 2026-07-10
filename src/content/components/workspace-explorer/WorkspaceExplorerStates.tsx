@@ -1,4 +1,5 @@
 interface WorkspaceExplorerErrorStateProps {
+  readonly conversationError: Error | null;
   readonly syncError: Error | null;
   readonly workspaceError: Error | null;
 }
@@ -21,19 +22,49 @@ export function WorkspaceExplorerSkeleton() {
 }
 
 export function WorkspaceExplorerErrorState({
+  conversationError,
   syncError,
   workspaceError,
 }: WorkspaceExplorerErrorStateProps) {
-  if (syncError === null && workspaceError === null) {
+  if (conversationError === null && syncError === null && workspaceError === null) {
     return null;
   }
 
   return (
-    <div className="border-b border-red-100 bg-red-50 px-4 py-3" role="alert">
-      <p className="text-sm font-semibold text-red-700">Workspace needs attention</p>
-      <p className="mt-1 text-xs leading-5 text-red-600">
-        {workspaceError?.message ?? syncError?.message ?? 'Workspace data could not be restored.'}
-      </p>
+    <div className="grid gap-2 border-b border-red-100 bg-red-50 px-4 py-3" role="alert">
+      {conversationError !== null ? (
+        <ErrorNotice
+          description="ChatGPT Workspace could not read this page's conversation structure. Refresh the ChatGPT tab, open an existing conversation, or keep using folders while detection recovers."
+          detail={conversationError.message}
+          title="Conversation detection needs attention"
+        />
+      ) : null}
+      {workspaceError !== null || syncError !== null ? (
+        <ErrorNotice
+          description={
+            workspaceError?.message ?? syncError?.message ?? 'Workspace data could not be restored.'
+          }
+          title="Workspace needs attention"
+        />
+      ) : null}
+    </div>
+  );
+}
+
+interface ErrorNoticeProps {
+  readonly description: string;
+  readonly detail?: string;
+  readonly title: string;
+}
+
+function ErrorNotice({ description, detail, title }: ErrorNoticeProps) {
+  return (
+    <div>
+      <p className="text-sm font-semibold text-red-700">{title}</p>
+      <p className="mt-1 text-xs leading-5 text-red-600">{description}</p>
+      {detail === undefined ? null : (
+        <p className="mt-1 text-xs leading-5 text-red-500">Details: {detail}</p>
+      )}
     </div>
   );
 }

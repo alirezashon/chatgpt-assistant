@@ -1,5 +1,6 @@
 import type { WorkspaceRuntimeState } from '@/app/workspace';
 import type { ConversationAssignment } from '@/features/assignments';
+import type { PremiumFeatureId } from '@/features/entitlements';
 import type { FavoriteService } from '@/features/favorites';
 import type { Chat, EntityId, Folder } from '@/shared/types';
 
@@ -28,6 +29,12 @@ export interface ActionExecutionOutcome {
     | 'selectionRequested';
 }
 
+export interface ActionUpgradePrompt {
+  readonly body: string;
+  readonly ctaLabel: string;
+  readonly title: string;
+}
+
 export interface ActionDefinition {
   readonly danger?: boolean;
   readonly disabled?: boolean;
@@ -35,9 +42,11 @@ export interface ActionDefinition {
   readonly id: string;
   readonly kind: ActionKind;
   readonly label: string;
+  readonly premiumFeatureId?: PremiumFeatureId;
   readonly scope: ActionScope;
   readonly separatorBefore?: boolean;
   readonly shortcut?: string;
+  readonly upgradePrompt?: ActionUpgradePrompt;
   execute(context: ActionContext): Promise<ActionExecutionOutcome>;
 }
 

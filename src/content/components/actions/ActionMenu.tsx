@@ -123,20 +123,30 @@ function ActionMenuItem({ action, onExecute, refCallback, targetIds }: ActionMen
       <button
         ref={refCallback}
         className={[
-          'flex w-full items-center gap-2 px-3 py-2 text-left transition focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40',
+          'flex w-full items-start gap-2 px-3 py-2 text-left transition focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60',
           action.danger === true
             ? 'text-red-600 hover:bg-red-50 focus-visible:bg-red-50'
             : 'text-slate-700 hover:bg-slate-50 focus-visible:bg-slate-50',
         ].join(' ')}
         disabled={action.disabled}
         role="menuitem"
+        title={action.upgradePrompt?.body}
         type="button"
         onClick={() => {
           onExecute(action.id, targetIds);
         }}
       >
-        <ActionIcon icon={action.icon} />
-        <span className="min-w-0 flex-1 truncate">{action.label}</span>
+        <span className="mt-0.5">
+          <ActionIcon icon={action.icon} />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate">{action.label}</span>
+          {action.upgradePrompt === undefined ? null : (
+            <span className="mt-0.5 block truncate text-[11px] text-slate-500">
+              {action.upgradePrompt.ctaLabel}
+            </span>
+          )}
+        </span>
         {action.shortcut === undefined ? null : (
           <span className="text-[10px] font-medium text-slate-400">{action.shortcut}</span>
         )}

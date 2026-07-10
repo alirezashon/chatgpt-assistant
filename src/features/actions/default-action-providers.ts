@@ -16,7 +16,10 @@ import {
   downloadConversationExport,
   type ConversationExportFormat,
 } from '@/features/actions/conversation-export';
+import { createClientHandoffExportProfile } from '@/features/actions/export-profile-builder';
 import { createMarkdownExport, downloadMarkdownExport } from '@/features/actions/markdown-export';
+import { createContextualUpgradePrompt } from '@/features/actions/upgrade-prompts';
+import { createAISummaryTeaser } from '@/features/ai';
 
 export const conversationActionProvider: ActionProvider = {
   getActions(context: ActionContext): readonly ActionDefinition[] {
@@ -162,6 +165,38 @@ export const conversationActionProvider: ActionProvider = {
         scope: 'conversation',
       },
       {
+        disabled: !hasSingleTarget,
+        execute: async (actionContext) => {
+          const conversationId = actionContext.targetIds[0];
+
+          if (conversationId === undefined) {
+            throw new Error('No conversation selected.');
+          }
+
+          const teaser = createAISummaryTeaser(actionContext.workspace, conversationId);
+
+          await writeClipboardText(teaser.copiedText);
+
+          return { message: 'AI summary preview copied.', type: 'completed' };
+        },
+        icon: 'sparkle',
+        id: 'preview-ai-summary',
+        kind: 'normal',
+        label: 'Preview AI Summary',
+        scope: 'conversation',
+      },
+      {
+        disabled: true,
+        execute: () => Promise.resolve({ type: 'completed' }),
+        icon: 'sparkle',
+        id: 'full-ai-summary',
+        kind: 'normal',
+        label: 'Full AI Summary',
+        premiumFeatureId: 'ai-summaries',
+        scope: 'conversation',
+        upgradePrompt: createContextualUpgradePrompt('ai-summaries', 'ai-summary'),
+      },
+      {
         disabled: assignment === null,
         execute: async (actionContext) => {
           await Promise.all(
@@ -237,6 +272,24 @@ export const utilityActionProvider: ActionProvider = {
         scope: 'conversation',
       },
       {
+        disabled: true,
+        execute: (actionContext) => {
+          const profile = createClientHandoffExportProfile(actionContext.targetIds);
+
+          return Promise.resolve({
+            message: `${profile.name} is available on Pro.`,
+            type: 'completed',
+          });
+        },
+        icon: 'external',
+        id: 'export-profile-builder',
+        kind: 'normal',
+        label: 'Export Profile Builder',
+        premiumFeatureId: 'saved-export-profiles',
+        scope: 'bulk',
+        upgradePrompt: createContextualUpgradePrompt('saved-export-profiles', 'export-profile'),
+      },
+      {
         execute: () => Promise.resolve({ type: 'selectionRequested' }),
         icon: 'select',
         id: 'select-all',
@@ -272,7 +325,7 @@ function createExportActions(
   formats: readonly (readonly [ConversationExportFormat, string])[],
 ): readonly ActionDefinition[] {
   return formats.map(([format, label]) => ({
-    disabled: context.targetIds.length === 0,
+    disabled: context.targetIds.length === 0 || format === 'pdf',
     execute: (actionContext) => {
       const result = createConversationExport(
         actionContext.workspace,
@@ -291,6 +344,12 @@ function createExportActions(
     id: `export-${format}`,
     kind: 'normal',
     label,
+    ...(format === 'pdf'
+      ? {
+          premiumFeatureId: 'pdf-export' as const,
+          upgradePrompt: createContextualUpgradePrompt('pdf-export', 'pdf-export'),
+        }
+      : {}),
     scope: 'bulk',
   }));
 }

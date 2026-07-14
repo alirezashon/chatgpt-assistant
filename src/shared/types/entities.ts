@@ -42,10 +42,12 @@ export interface Favorite {
 export type ExportFormat = 'markdown' | 'pdf';
 
 export type WorkspaceTheme = 'light' | 'system';
+export type WorkspaceThemePreset = 'classic' | 'mint' | 'ocean' | 'violet';
 
 export interface WorkspaceSettings {
   readonly enableDebugLogging: boolean;
   readonly schemaVersion: number;
   readonly sidebarWidth: number;
   readonly theme: WorkspaceTheme;
+  readonly themePreset: WorkspaceThemePreset;
 }

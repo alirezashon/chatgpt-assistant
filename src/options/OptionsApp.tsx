@@ -7,6 +7,7 @@ import { RELEASE_NOTES } from '@/constants/release-notes';
 import { DEFAULT_SETTINGS } from '@/constants/settings';
 import { STORAGE_KEYS } from '@/constants/storage';
 import { SUPPORT_LINKS } from '@/constants/support-links';
+import { WORKSPACE_THEME_PRESETS } from '@/constants/theme-presets';
 import {
   AI_PRIVACY_COPY,
   DEFAULT_AI_SETTINGS,
@@ -804,6 +805,60 @@ export function OptionsApp() {
                 </span>
               </div>
             </label>
+
+            <div className="grid gap-3">
+              <div>
+                <p className="text-sm font-medium">Theme template</p>
+                <p className="mt-1 text-sm leading-6 text-slate-600">
+                  Pick a ready-made visual style. It is saved locally and applied on every ChatGPT
+                  load.
+                </p>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {WORKSPACE_THEME_PRESETS.map((preset) => {
+                  const selected = settings.themePreset === preset.id;
+
+                  return (
+                    <button
+                      key={preset.id}
+                      className={[
+                        'grid gap-3 rounded-lg border p-3 text-left transition focus-visible:ring-4 focus-visible:ring-slate-200 focus-visible:outline-none',
+                        selected
+                          ? 'border-slate-950 bg-slate-50 shadow-sm'
+                          : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50',
+                      ].join(' ')}
+                      disabled={!canPersist}
+                      type="button"
+                      onClick={() => {
+                        void saveSettings({
+                          ...settings,
+                          themePreset: preset.id,
+                        });
+                      }}
+                    >
+                      <span className="flex items-center justify-between gap-3">
+                        <span className="text-sm font-semibold text-slate-950">{preset.name}</span>
+                        <span
+                          className={[
+                            'rounded-full px-2.5 py-1 text-[11px] font-semibold',
+                            selected ? 'bg-slate-950 text-white' : 'bg-slate-100 text-slate-600',
+                          ].join(' ')}
+                        >
+                          {selected ? 'Selected' : 'Template'}
+                        </span>
+                      </span>
+                      <span className="flex h-12 overflow-hidden rounded-md border border-slate-200">
+                        <span className="flex-1" style={{ backgroundColor: preset.surface }} />
+                        <span className="flex-1" style={{ backgroundColor: preset.muted }} />
+                        <span className="flex-1" style={{ backgroundColor: preset.accent }} />
+                        <span className="flex-1" style={{ backgroundColor: preset.button }} />
+                      </span>
+                      <span className="text-xs leading-5 text-slate-600">{preset.description}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
             <label className="flex items-center justify-between gap-4">
               <span>

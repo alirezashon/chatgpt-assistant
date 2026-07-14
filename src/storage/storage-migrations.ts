@@ -92,6 +92,7 @@ function normalizeWorkspaceSettings(value: StorageValue): WorkspaceSettings {
       value['theme'] === 'light' || value['theme'] === 'system'
         ? value['theme']
         : DEFAULT_SETTINGS.theme,
+    themePreset: normalizeThemePreset(value['themePreset']),
   };
 }
 
@@ -145,6 +146,12 @@ function normalizeSubscriptionStatus(
 
 function clampSidebarWidth(value: number): number {
   return Math.min(520, Math.max(320, Math.round(value)));
+}
+
+function normalizeThemePreset(value: StorageValue): WorkspaceSettings['themePreset'] {
+  return value === 'classic' || value === 'mint' || value === 'ocean' || value === 'violet'
+    ? value
+    : DEFAULT_SETTINGS.themePreset;
 }
 
 function isRecord(value: StorageValue): value is Readonly<Record<string, unknown>> {

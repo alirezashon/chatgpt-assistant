@@ -1,9 +1,13 @@
 import { ANIMATION_DURATIONS, UI_CSS_VARIABLES, UI_DIMENSIONS } from '@/constants/ui';
+import { DEFAULT_SETTINGS } from '@/constants/settings';
+import { getWorkspaceThemePreset } from '@/constants/theme-presets';
+import type { WorkspaceSettings } from '@/shared/types';
 
 const HOST_ID = 'chatgpt-workspace-root';
 const MOUNT_ID = 'chatgpt-workspace-app';
 
 interface ExtensionShadowRoot {
+  hostElement: HTMLDivElement;
   mountElement: HTMLDivElement;
   shadowRoot: ShadowRoot;
 }
@@ -28,9 +32,26 @@ export function createExtensionShadowRoot(styles: string): ExtensionShadowRoot {
   shadowRoot.append(styleElement, mountElement);
 
   return {
+    hostElement,
     mountElement,
     shadowRoot,
   };
+}
+
+export function applyWorkspaceThemeTokens(
+  hostElement: HTMLElement,
+  settings: WorkspaceSettings = DEFAULT_SETTINGS,
+): void {
+  const preset = getWorkspaceThemePreset(settings.themePreset);
+
+  hostElement.style.setProperty(UI_CSS_VARIABLES.accent, preset.accent);
+  hostElement.style.setProperty(UI_CSS_VARIABLES.border, preset.border);
+  hostElement.style.setProperty(UI_CSS_VARIABLES.button, preset.button);
+  hostElement.style.setProperty(UI_CSS_VARIABLES.buttonText, preset.buttonText);
+  hostElement.style.setProperty(UI_CSS_VARIABLES.muted, preset.muted);
+  hostElement.style.setProperty(UI_CSS_VARIABLES.surface, preset.surface);
+  hostElement.style.setProperty(UI_CSS_VARIABLES.text, preset.text);
+  hostElement.style.setProperty(UI_CSS_VARIABLES.sidebarWidth, toPixels(settings.sidebarWidth));
 }
 
 function applyDesignTokens(hostElement: HTMLElement): void {
@@ -55,10 +76,7 @@ function applyDesignTokens(hostElement: HTMLElement): void {
     UI_CSS_VARIABLES.sidebarClosedOffset,
     toPixels(UI_DIMENSIONS.sidebarClosedOffset),
   );
-  hostElement.style.setProperty(
-    UI_CSS_VARIABLES.sidebarWidth,
-    toPixels(UI_DIMENSIONS.sidebarWidth),
-  );
+  applyWorkspaceThemeTokens(hostElement);
 }
 
 function toMilliseconds(value: number): string {

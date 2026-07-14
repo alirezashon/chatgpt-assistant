@@ -43,6 +43,7 @@ function createJob(overrides: Partial<AIJob>): AIJob {
           schemaVersion: 1,
           sidebarWidth: 380,
           theme: 'system',
+          themePreset: 'classic',
         },
         recentActivity: [],
         workspace: {} as AIJob['request']['context']['workspace'],

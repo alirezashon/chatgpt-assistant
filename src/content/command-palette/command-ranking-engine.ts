@@ -34,6 +34,8 @@ export class CommandRankingEngine {
     const permissionPenalty = input.command.permission === 'allowed' ? 0 : -0.2;
     const latencyPenalty = normalize(input.command.latencyMs, 5000) * -0.05;
     const confidenceBoost = input.command.confidence * 0.08;
+    const popularityBoost = input.command.popularity * 0.05;
+    const usageBoost = normalize(input.command.usageCount, 20) * 0.06;
 
     if (favoriteBoost > 0) {
       reasons.push('favorite');
@@ -60,7 +62,9 @@ export class CommandRankingEngine {
       shortcutBoost +
       permissionPenalty +
       latencyPenalty +
-      confidenceBoost;
+      confidenceBoost +
+      popularityBoost +
+      usageBoost;
 
     return {
       command: input.command,
@@ -77,9 +81,18 @@ function getContextBoost(command: PaletteCommand, context: PageContextSnapshot |
 
   if (
     command.keywords.includes(context.pageKind) ||
+    command.tags.includes(context.pageKind) ||
     command.category === categoryForPageKind(context.pageKind)
   ) {
     return 0.12;
+  }
+
+  if (
+    command.requiredContext?.hostIncludes?.some((fragment) =>
+      context.hostname.includes(fragment),
+    ) === true
+  ) {
+    return 0.16;
   }
 
   return 0;
@@ -88,9 +101,9 @@ function getContextBoost(command: PaletteCommand, context: PageContextSnapshot |
 function categoryForPageKind(pageKind: PageContextSnapshot['pageKind']) {
   switch (pageKind) {
     case 'code':
-      return 'code';
+      return 'coding';
     case 'email':
-      return 'communication';
+      return 'writing';
     case 'article':
     case 'document':
     case 'pdf':

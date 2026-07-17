@@ -29,7 +29,7 @@ describe('CommandPaletteController', () => {
     await success;
 
     expect(executed).toBe('core.code.debug');
-    expect(controller.getSnapshot().status).toBe('Success');
+    expect(controller.getSnapshot().status).toBe('Closed');
   });
 
   it('moves to ArgumentsRequired when required arguments are missing', async () => {

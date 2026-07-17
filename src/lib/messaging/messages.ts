@@ -17,6 +17,7 @@ export interface RuntimeMessagePayloads {
   readonly 'context.getActive': undefined;
   readonly 'runtime.openOptions': undefined;
   readonly 'runtime.openSidebar': undefined;
+  readonly 'runtime.openShortcutSettings': undefined;
   readonly 'runtime.ping': {
     readonly requestId?: string;
   };

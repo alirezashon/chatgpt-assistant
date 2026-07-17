@@ -77,6 +77,21 @@ const SHADOW_CSS = `
   :host {
     all: initial;
     color-scheme: light dark;
+    --ds-color-surface: rgba(18, 18, 21, 0.92);
+    --ds-color-border: rgba(255, 255, 255, 0.14);
+    --ds-color-text: rgba(255, 255, 255, 0.96);
+    --ds-color-text-muted: rgba(255, 255, 255, 0.5);
+    --ds-color-hover: rgba(255, 255, 255, 0.1);
+    --ds-color-focus: rgba(125, 211, 252, 0.95);
+    --ds-color-danger: rgb(255, 196, 196);
+    --ds-radius-sm: 5px;
+    --ds-radius-md: 9px;
+    --ds-radius-lg: 14px;
+    --ds-space-1: 4px;
+    --ds-space-2: 8px;
+    --ds-shadow-floating: 0 24px 80px rgba(0, 0, 0, 0.34), 0 1px 0 rgba(255, 255, 255, 0.08) inset;
+    --ds-blur-panel: 18px;
+    --ds-duration-fast: 100ms;
     font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
 
@@ -87,15 +102,13 @@ const SHADOW_CSS = `
   .surface {
     position: fixed;
     pointer-events: auto;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: 14px;
-    background: rgba(18, 18, 21, 0.92);
-    color: rgba(255, 255, 255, 0.96);
-    box-shadow:
-      0 24px 80px rgba(0, 0, 0, 0.34),
-      0 1px 0 rgba(255, 255, 255, 0.08) inset;
-    -webkit-backdrop-filter: blur(18px);
-    backdrop-filter: blur(18px);
+    border: 1px solid var(--ds-color-border);
+    border-radius: var(--ds-radius-lg);
+    background: var(--ds-color-surface);
+    color: var(--ds-color-text);
+    box-shadow: var(--ds-shadow-floating);
+    -webkit-backdrop-filter: blur(var(--ds-blur-panel));
+    backdrop-filter: blur(var(--ds-blur-panel));
     padding: 6px;
     outline: none;
   }
@@ -103,7 +116,7 @@ const SHADOW_CSS = `
   .actionRow {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: var(--ds-space-1);
     min-height: 38px;
     overflow: hidden;
   }
@@ -116,7 +129,7 @@ const SHADOW_CSS = `
     align-items: center;
     gap: 7px;
     border: 0;
-    border-radius: 9px;
+    border-radius: var(--ds-radius-md);
     background: transparent;
     color: rgba(255, 255, 255, 0.82);
     cursor: pointer;
@@ -126,19 +139,19 @@ const SHADOW_CSS = `
     line-height: 1;
     padding: 0 9px;
     transition:
-      background 100ms ease,
-      color 100ms ease,
+      background var(--ds-duration-fast) ease,
+      color var(--ds-duration-fast) ease,
       transform 80ms ease;
   }
 
   .actionButton:hover,
   .actionButton.active {
-    background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.98);
+    background: var(--ds-color-hover);
+    color: var(--ds-color-text);
   }
 
   .actionButton:focus-visible {
-    outline: 2px solid rgba(125, 168, 255, 0.95);
+    outline: 2px solid var(--ds-color-focus);
     outline-offset: 2px;
   }
 
@@ -166,9 +179,9 @@ const SHADOW_CSS = `
   }
 
   kbd {
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 5px;
-    color: rgba(255, 255, 255, 0.5);
+    border: 1px solid var(--ds-color-border);
+    border-radius: var(--ds-radius-sm);
+    color: var(--ds-color-text-muted);
     font-size: 10px;
     line-height: 1;
     padding: 2px 4px;
@@ -176,7 +189,7 @@ const SHADOW_CSS = `
 
   .errorText {
     width: 100%;
-    color: rgb(255, 196, 196);
+    color: var(--ds-color-danger);
     font-size: 12px;
     font-weight: 520;
     padding: 8px 10px;

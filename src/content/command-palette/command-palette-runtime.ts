@@ -1,9 +1,9 @@
 import { DisposableStore, type Disposable } from '@/runtime';
 
 import { CommandPaletteController } from './command-palette-controller';
-import { NoopCommandExecutionBridge } from './command-execution-bridge';
+import { CommandExecutionManager } from './command-execution-bridge';
 import { ReactCommandPaletteRenderer } from './command-palette-renderer';
-import { StaticCommandSource } from './static-command-source';
+import { FirstPartyCommandSource } from './first-party-command-source';
 import type {
   CommandPaletteCommandSource,
   CommandPaletteExecutionBridge,
@@ -16,8 +16,8 @@ export class CommandPaletteRuntime implements Disposable {
   private readonly renderer = new ReactCommandPaletteRenderer();
 
   public constructor(
-    source: CommandPaletteCommandSource = new StaticCommandSource([]),
-    execution: CommandPaletteExecutionBridge = new NoopCommandExecutionBridge(),
+    source: CommandPaletteCommandSource = new FirstPartyCommandSource(),
+    execution: CommandPaletteExecutionBridge = new CommandExecutionManager(),
   ) {
     this.controller = new CommandPaletteController(source, execution);
   }

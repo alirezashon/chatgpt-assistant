@@ -9,8 +9,8 @@ export class CommandShortcutManager {
     const isMac = navigator.platform.toLowerCase().includes('mac');
 
     return shortcut
-      .replaceAll('Mod', isMac ? '⌘' : 'Ctrl')
-      .replaceAll('Shift', isMac ? '⇧' : 'Shift')
-      .replaceAll('Alt', isMac ? '⌥' : 'Alt');
+      .replaceAll('Mod', isMac ? 'Cmd' : 'Ctrl')
+      .replaceAll('Shift', 'Shift')
+      .replaceAll('Alt', 'Alt');
   }
 }

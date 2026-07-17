@@ -110,6 +110,16 @@ export async function openOptionsPage(): Promise<void> {
   await candidate.runtime.openOptionsPage();
 }
 
+export async function openTab(url: string): Promise<void> {
+  const candidate = globalThis.chrome as ChromeTabsLike | undefined;
+
+  if (candidate?.tabs === undefined) {
+    throw new Error('Chrome tabs API is unavailable.');
+  }
+
+  await candidate.tabs.create({ url });
+}
+
 export function createContextMenu(input: chrome.contextMenus.CreateProperties): void {
   const candidate = globalThis.chrome as ChromeContextMenusLike | undefined;
 

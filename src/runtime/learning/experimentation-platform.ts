@@ -46,7 +46,7 @@ export class ExperimentationPlatform {
   public flagEnabled(experimentId: string, subjectKey: string): boolean {
     const experiment = this.store.getExperiment(experimentId);
 
-    if (experiment === undefined || experiment.status !== 'active') {
+    if (experiment?.status !== 'active') {
       return false;
     }
 

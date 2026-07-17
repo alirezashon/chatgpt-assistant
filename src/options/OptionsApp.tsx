@@ -1,52 +1,38 @@
 import { Shield, SlidersHorizontal } from 'lucide-react';
 
 import { APP_NAME, APP_VERSION } from '@/constants';
+import { Badge, MetricRow, PageHeader, Panel, SectionTitle, SurfaceRoot } from '@/design-system';
 import { runtimeConfig } from '@/lib/config/runtime-config';
 
 export function OptionsApp() {
   return (
-    <main className="min-h-screen bg-zinc-50 text-zinc-950">
-      <div className="mx-auto grid w-full max-w-3xl gap-8 px-6 py-10">
-        <header className="border-b border-zinc-200 pb-6">
-          <p className="text-sm font-medium text-zinc-500">Version {APP_VERSION}</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-normal">{APP_NAME}</h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-600">
-            Minimal extension-level configuration belongs here. Product workflows should live in
-            contextual surfaces, not in a settings dashboard.
-          </p>
-        </header>
+    <SurfaceRoot size="content">
+      <PageHeader
+        actions={<Badge>v{APP_VERSION}</Badge>}
+        icon={SlidersHorizontal}
+        subtitle="Provider, privacy, shortcut, and runtime preferences only."
+        title={`${APP_NAME} Settings`}
+      />
 
-        <section className="grid gap-4 sm:grid-cols-2">
-          <div className="rounded-md border border-zinc-200 bg-white p-4">
-            <div className="flex items-center gap-2 text-sm font-semibold">
-              <Shield className="h-4 w-4" />
-              Privacy Baseline
-            </div>
-            <p className="mt-3 text-sm leading-6 text-zinc-600">
+      <div className="grid gap-[var(--ds-space-4)] px-[var(--ds-space-4)] py-[var(--ds-space-4)] sm:grid-cols-2">
+        <Panel className="p-[var(--ds-space-4)]">
+          <SectionTitle icon={Shield} title="Privacy baseline" />
+          <p className="mt-[var(--ds-space-3)] text-[length:var(--ds-font-body)] leading-[var(--ds-line-body)] text-[color:var(--ds-color-text-muted)]">
               Page content is captured only after user interaction. Future provider calls should
               flow through the background worker and the typed command contracts.
-            </p>
-          </div>
-          <div className="rounded-md border border-zinc-200 bg-white p-4">
-            <div className="flex items-center gap-2 text-sm font-semibold">
-              <SlidersHorizontal className="h-4 w-4" />
-              Runtime
-            </div>
-            <dl className="mt-3 grid gap-2 text-sm text-zinc-600">
-              <div className="flex justify-between gap-4">
-                <dt>Environment</dt>
-                <dd className="font-medium text-zinc-950">{runtimeConfig.appEnvironment}</dd>
-              </div>
-              <div className="flex justify-between gap-4">
-                <dt>AI base URL</dt>
-                <dd className="font-medium text-zinc-950">
-                  {runtimeConfig.aiApiBaseUrl.length > 0 ? 'configured' : 'not configured'}
-                </dd>
-              </div>
-            </dl>
-          </div>
-        </section>
+          </p>
+        </Panel>
+        <Panel className="p-[var(--ds-space-4)]">
+          <SectionTitle icon={SlidersHorizontal} title="Runtime" />
+          <dl className="mt-[var(--ds-space-3)] grid gap-[var(--ds-space-2)]">
+            <MetricRow label="Environment" value={runtimeConfig.appEnvironment} />
+            <MetricRow
+              label="AI base URL"
+              value={runtimeConfig.aiApiBaseUrl.length > 0 ? 'configured' : 'not configured'}
+            />
+          </dl>
+        </Panel>
       </div>
-    </main>
+    </SurfaceRoot>
   );
 }

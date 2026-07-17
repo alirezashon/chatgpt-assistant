@@ -73,11 +73,11 @@ export class LearningPrivacyManager {
   }
 
   private minimizeValue(value: LearningValue): LearningValue {
-    if (Array.isArray(value)) {
+    if (this.isArray(value)) {
       return value.map((entry) => this.minimizeValue(entry));
     }
 
-    if (value !== null && typeof value === 'object') {
+    if (this.isRecord(value)) {
       return Object.fromEntries(
         Object.entries(value)
           .filter(([key]) => !this.isSensitiveKey(key))
@@ -86,6 +86,14 @@ export class LearningPrivacyManager {
     }
 
     return value;
+  }
+
+  private isArray(value: LearningValue): value is readonly LearningValue[] {
+    return Array.isArray(value);
+  }
+
+  private isRecord(value: LearningValue): value is Readonly<Record<string, LearningValue>> {
+    return value !== null && typeof value === 'object' && !Array.isArray(value);
   }
 
   private isSensitiveKey(key: string): boolean {

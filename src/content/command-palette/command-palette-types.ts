@@ -20,10 +20,14 @@ export type CommandPaletteStatus =
 export type PaletteCommandCategory =
   | 'automation'
   | 'browser'
-  | 'code'
-  | 'communication'
+  | 'ai'
+  | 'bookmarks'
+  | 'coding'
+  | 'developer'
+  | 'knowledge'
+  | 'memory'
   | 'research'
-  | 'settings'
+  | 'system'
   | 'workflow'
   | 'writing';
 
@@ -46,6 +50,18 @@ export interface PaletteCommandArgument {
   readonly required: boolean;
   /** Choice options for choice-like arguments. */
   readonly options?: readonly string[];
+}
+
+/** Context required before a command should be shown. */
+export interface PaletteCommandRequiredContext {
+  /** Hostname fragments such as github.com or youtube.com. */
+  readonly hostIncludes?: readonly string[];
+  /** Page kinds where the command is relevant. */
+  readonly pageKinds?: readonly PageContextSnapshot['pageKind'][];
+  /** True when selected text is required. */
+  readonly requiresSelection?: boolean;
+  /** True when an editable target is required. */
+  readonly requiresEditableTarget?: boolean;
 }
 
 /** Presentation-neutral command record. */
@@ -76,10 +92,20 @@ export interface PaletteCommand {
   readonly badge?: string;
   /** Permission state. */
   readonly permission: PalettePermissionState;
+  /** Capability scopes needed by this command. */
+  readonly permissions: readonly string[];
+  /** Required page context before showing the command. */
+  readonly requiredContext?: PaletteCommandRequiredContext;
   /** Optional warning. */
   readonly warning?: string;
   /** Expected latency in milliseconds. */
   readonly latencyMs: number;
+  /** Search tags and semantic labels. */
+  readonly tags: readonly string[];
+  /** Global popularity hint from product analytics or defaults. */
+  readonly popularity: number;
+  /** Local usage count. */
+  readonly usageCount: number;
   /** Optional argument schema. */
   readonly arguments?: readonly PaletteCommandArgument[];
   /** True for experimental commands. */
@@ -144,6 +170,10 @@ export interface CommandPaletteState {
   readonly argumentValues: Readonly<Record<string, unknown>>;
   /** Context snapshot. */
   readonly context: PageContextSnapshot | null;
+  /** Favorite command ids. */
+  readonly favoriteCommandIds: readonly string[];
+  /** Recent command ids. */
+  readonly recentCommandIds: readonly string[];
   /** Safe error message. */
   readonly error: string | null;
 }
@@ -167,8 +197,12 @@ export interface CommandPaletteControllerPort {
   moveActive(delta: number): void;
   /** Selects active command or executes if ready. */
   confirm(): void;
+  /** Executes a visible command by id. */
+  execute(commandId: string): void;
   /** Closes palette. */
   close(): void;
   /** Sets an argument value. */
   setArgument(id: string, value: unknown): void;
+  /** Toggles a favorite command. */
+  toggleFavorite(commandId: string): void;
 }

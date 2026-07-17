@@ -1,9 +1,11 @@
 import { COMMAND_IDS } from '@/constants';
 import { STORAGE_KEYS } from '@/constants/storage';
 import type { CommandId } from '@/features/commands';
+import { createMinimalPageContext } from '@/features/context';
 import {
   configureSidePanel,
   getActiveTab,
+  openTab,
   openOptionsPage,
   openSidePanel,
   reportChromeApiError,
@@ -60,6 +62,9 @@ installRuntimeMessageHandler(async (message, sender) => {
       return { data: undefined, ok: true };
     case 'runtime.openSidebar':
       await openSidebarForSender(sender);
+      return { data: undefined, ok: true };
+    case 'runtime.openShortcutSettings':
+      await openTab('chrome://extensions/shortcuts');
       return { data: undefined, ok: true };
     case 'command.run':
       return {
@@ -126,12 +131,14 @@ async function dispatchCommandToTab(
         tabId,
         createMessage('background', 'selection.changed', {
           context: {
-            capturedAt: new Date().toISOString(),
-            hostname: '',
-            pageKind: 'generic',
-            selectedText,
-            title: '',
-            url: '',
+            ...createMinimalPageContext({
+              capturedAt: new Date().toISOString(),
+              hostname: '',
+              pageKind: 'generic',
+              selectedText,
+              title: '',
+              url: '',
+            }),
           },
           selectedText,
         }),

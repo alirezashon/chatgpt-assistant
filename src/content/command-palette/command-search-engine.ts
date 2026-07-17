@@ -54,6 +54,7 @@ function scoreText(command: PaletteCommand, query: string): number {
     command.namespace,
     command.category,
     command.provider,
+    ...command.tags,
     ...command.aliases,
     ...command.keywords,
   ].map(normalizeText);
@@ -88,7 +89,7 @@ function getEmptyQueryScore(
     return 0.65;
   }
 
-  return command.confidence * 0.45;
+  return command.confidence * 0.35 + command.popularity * 0.18;
 }
 
 function fuzzyScore(field: string, query: string): number {

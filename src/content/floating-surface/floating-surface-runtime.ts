@@ -1,6 +1,6 @@
 import { DisposableStore, debounce, type Disposable } from '@/runtime';
 
-import { EmptyFloatingSurfaceAdapter } from './floating-surface-adapter';
+import { ContextualFloatingSurfaceAdapter } from './floating-surface-adapter';
 import { FloatingSurfaceController } from './floating-surface-controller';
 import { ReactFloatingSurfaceRenderer } from './floating-surface-renderer';
 import { readCurrentSelection } from './floating-surface-selection';
@@ -14,7 +14,7 @@ export class FloatingSurfaceRuntime implements Disposable {
   private readonly controller: FloatingSurfaceController;
   private readonly renderer: ReactFloatingSurfaceRenderer;
 
-  public constructor(adapter: FloatingSurfaceAdapter = new EmptyFloatingSurfaceAdapter()) {
+  public constructor(adapter: FloatingSurfaceAdapter = new ContextualFloatingSurfaceAdapter()) {
     this.controller = new FloatingSurfaceController(adapter);
     this.renderer = new ReactFloatingSurfaceRenderer();
   }

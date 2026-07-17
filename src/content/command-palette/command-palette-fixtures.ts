@@ -4,7 +4,7 @@ import type { PaletteCommand } from './command-palette-types';
 export const TEST_COMMANDS: readonly PaletteCommand[] = [
   {
     aliases: ['fix bug', 'patch'],
-    category: 'code',
+    category: 'coding',
     confidence: 0.9,
     description: 'Find and fix a bug in selected code.',
     icon: 'code',
@@ -13,9 +13,13 @@ export const TEST_COMMANDS: readonly PaletteCommand[] = [
     latencyMs: 120,
     namespace: 'core',
     permission: 'allowed',
+    permissions: ['activeTab'],
+    popularity: 0.6,
     provider: 'Core',
     shortcut: 'Mod+D',
+    tags: ['debug', 'code'],
     title: 'Debug Code',
+    usageCount: 0,
   },
   {
     aliases: ['tldr'],
@@ -28,8 +32,12 @@ export const TEST_COMMANDS: readonly PaletteCommand[] = [
     latencyMs: 300,
     namespace: 'core',
     permission: 'allowed',
+    permissions: ['activeTab'],
+    popularity: 0.8,
     provider: 'Core',
+    tags: ['summary', 'page'],
     title: 'Summarize Page',
+    usageCount: 0,
   },
   {
     aliases: ['professional tone'],
@@ -51,7 +59,11 @@ export const TEST_COMMANDS: readonly PaletteCommand[] = [
     latencyMs: 180,
     namespace: 'core',
     permission: 'allowed',
+    permissions: ['activeTab'],
+    popularity: 0.5,
     provider: 'Core',
+    tags: ['writing'],
     title: 'Rewrite Text',
+    usageCount: 0,
   },
 ];

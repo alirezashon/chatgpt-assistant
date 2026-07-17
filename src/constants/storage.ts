@@ -10,6 +10,7 @@ export const STORAGE_KEYS = {
   chats: `${EXTENSION_ID_PREFIX}:chats`,
   diagnostics: `${EXTENSION_ID_PREFIX}:diagnostics`,
   entitlements: `${EXTENSION_ID_PREFIX}:entitlements`,
+  extensionSettings: `${EXTENSION_ID_PREFIX}:extension-settings`,
   favorites: `${EXTENSION_ID_PREFIX}:favorites`,
   folders: `${EXTENSION_ID_PREFIX}:folders`,
   recentlyUsedFolders: `${EXTENSION_ID_PREFIX}:recently-used-folders`,

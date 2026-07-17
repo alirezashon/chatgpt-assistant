@@ -6,7 +6,9 @@ const rootDirectory = fileURLToPath(new URL('.', import.meta.url));
 
 export default defineConfig({
   define: {
-    __APP_NAME__: JSON.stringify('ChatGPT Workspace'),
+    __AI_API_BASE_URL__: JSON.stringify(''),
+    __APP_ENVIRONMENT__: JSON.stringify('test'),
+    __APP_NAME__: JSON.stringify('AI Productivity Layer'),
     __APP_VERSION__: JSON.stringify('0.1.0'),
     __WORKSPACE_API_BASE_URL__: JSON.stringify(''),
   },

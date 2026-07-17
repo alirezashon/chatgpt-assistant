@@ -1,11 +1,12 @@
 {
-  "name": "chatgpt-workspace",
+  "name": "ai-productivity-layer-extension",
   "version": "0.1.0",
-  "description": "A local-first Chrome Extension that adds workspace organization tools to ChatGPT.",
+  "description": "A production-grade Chrome Extension foundation for an AI productivity layer across the web.",
   "type": "module",
   "private": true,
   "scripts": {
     "dev": "vite --mode development",
+    "dev:content": "vite build --watch --config vite.content.config.ts --mode development",
     "build": "npm run store:assets && tsc --noEmit && vite build && vite build --config vite.content.config.ts",
     "bundle:size": "node scripts/report-bundle-size.mjs",
     "preview": "vite preview",
@@ -18,25 +19,33 @@
     "format": "prettier . --write",
     "format:check": "prettier . --check",
     "check": "npm run typecheck && npm run lint && npm run format:check && npm run test && npm run build && npm run bundle:size",
+    "clean": "node -e \"fs.rmSync('dist',{recursive:true,force:true})\"",
     "prepare": "node .husky/install.mjs"
   },
   "keywords": [
     "chrome-extension",
-    "chatgpt",
-    "workspace",
+    "ai",
+    "productivity",
     "react",
     "typescript"
   ],
   "author": "",
   "license": "UNLICENSED",
   "dependencies": {
+    "@tanstack/react-query": "^5.101.2",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.42.2",
+    "lucide-react": "^1.25.0",
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "react-hot-toast": "^2.6.0",
+    "zustand": "^5.0.14"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@tailwindcss/vite": "^4.3.2",
     "@playwright/test": "^1.61.1",
+    "@tailwindcss/vite": "^4.3.2",
     "@types/chrome": "^0.2.2",
     "@types/node": "^26.1.0",
     "@types/react": "^19.2.17",

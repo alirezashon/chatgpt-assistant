@@ -1,0 +1,57 @@
+import type { PaletteCommand } from './command-palette-types';
+
+/** Shared test command fixtures. */
+export const TEST_COMMANDS: readonly PaletteCommand[] = [
+  {
+    aliases: ['fix bug', 'patch'],
+    category: 'code',
+    confidence: 0.9,
+    description: 'Find and fix a bug in selected code.',
+    icon: 'code',
+    id: 'core.code.debug',
+    keywords: ['code', 'debug', 'error'],
+    latencyMs: 120,
+    namespace: 'core',
+    permission: 'allowed',
+    provider: 'Core',
+    shortcut: 'Mod+D',
+    title: 'Debug Code',
+  },
+  {
+    aliases: ['tldr'],
+    category: 'research',
+    confidence: 0.8,
+    description: 'Summarize the current page.',
+    icon: 'document',
+    id: 'core.page.summarize',
+    keywords: ['article', 'pdf', 'summary'],
+    latencyMs: 300,
+    namespace: 'core',
+    permission: 'allowed',
+    provider: 'Core',
+    title: 'Summarize Page',
+  },
+  {
+    aliases: ['professional tone'],
+    arguments: [
+      {
+        id: 'tone',
+        label: 'Tone',
+        options: ['Professional', 'Friendly'],
+        required: true,
+        type: 'choice',
+      },
+    ],
+    category: 'writing',
+    confidence: 0.7,
+    description: 'Rewrite selected text with a chosen tone.',
+    icon: 'write',
+    id: 'core.text.rewrite',
+    keywords: ['text', 'email', 'rewrite'],
+    latencyMs: 180,
+    namespace: 'core',
+    permission: 'allowed',
+    provider: 'Core',
+    title: 'Rewrite Text',
+  },
+];

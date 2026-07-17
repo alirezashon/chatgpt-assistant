@@ -11,9 +11,10 @@ export default defineConfig(({ mode }) => {
 
   return {
     define: {
-      __APP_NAME__: JSON.stringify(env['VITE_APP_NAME'] ?? 'ChatGPT Workspace'),
+      __APP_NAME__: JSON.stringify(env['VITE_APP_NAME'] ?? 'AI Productivity Layer'),
       __APP_VERSION__: JSON.stringify(env['VITE_APP_VERSION'] ?? '0.1.0'),
-      __WORKSPACE_API_BASE_URL__: JSON.stringify(env['VITE_WORKSPACE_API_BASE_URL'] ?? ''),
+      __APP_ENVIRONMENT__: JSON.stringify(env['VITE_APP_ENVIRONMENT'] ?? mode),
+      __AI_API_BASE_URL__: JSON.stringify(env['VITE_AI_API_BASE_URL'] ?? ''),
       'process.env.NODE_ENV': JSON.stringify(mode === 'production' ? 'production' : 'development'),
     },
     plugins: [react(), tailwindcss()],
@@ -30,6 +31,7 @@ export default defineConfig(({ mode }) => {
           background: resolve(rootDirectory, 'src/background/service-worker.ts'),
           options: resolve(rootDirectory, 'options.html'),
           popup: resolve(rootDirectory, 'popup.html'),
+          sidebar: resolve(rootDirectory, 'sidebar.html'),
         },
         output: {
           assetFileNames: 'assets/[name][extname]',

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "ChatGPT Workspace",
-  "description": "Local-first workspace organization tools for ChatGPT.",
+  "name": "AI Productivity Layer",
+  "description": "A fast, contextual AI command layer for working across the web.",
   "version": "0.1.0",
   "action": {
     "default_icon": {
@@ -9,7 +9,7 @@
       "32": "icons/icon-32.png"
     },
     "default_popup": "popup.html",
-    "default_title": "ChatGPT Workspace"
+    "default_title": "AI Productivity Layer"
   },
   "background": {
     "service_worker": "assets/background.js",
@@ -20,11 +20,28 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://chatgpt.com/*", "https://chat.openai.com/*"],
+      "matches": ["http://*/*", "https://*/*"],
       "js": ["assets/content.js"],
       "run_at": "document_idle"
     }
   ],
+  "commands": {
+    "open-command-palette": {
+      "description": "Open the AI command palette",
+      "suggested_key": {
+        "default": "Ctrl+Shift+K",
+        "mac": "Command+Shift+K"
+      }
+    },
+    "summarize-page": {
+      "description": "Run the page summary command",
+      "suggested_key": {
+        "default": "Ctrl+Shift+S",
+        "mac": "Command+Shift+S"
+      }
+    }
+  },
+  "host_permissions": ["http://*/*", "https://*/*"],
   "icons": {
     "16": "icons/icon-16.png",
     "32": "icons/icon-32.png",
@@ -35,5 +52,8 @@
     "open_in_tab": true,
     "page": "options.html"
   },
-  "permissions": ["activeTab", "storage"]
+  "permissions": ["activeTab", "contextMenus", "scripting", "sidePanel", "storage", "tabs"],
+  "side_panel": {
+    "default_path": "sidebar.html"
+  }
 }

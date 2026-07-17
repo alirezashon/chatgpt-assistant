@@ -7,9 +7,16 @@ export type SyncStatus = 'error' | 'idle' | 'recovering' | 'restoring' | 'syncin
 
 export interface UiPreferences {
   readonly expandedFolderIds: readonly string[];
+  readonly floatingButtonPosition: UiPosition | null;
   readonly onboardingDismissed: boolean;
   readonly recentlyUsedFolderIds: readonly string[];
   readonly sidebarOpen: boolean;
+  readonly sidebarWidth: number;
+}
+
+export interface UiPosition {
+  readonly x: number;
+  readonly y: number;
 }
 
 export interface WorkspaceSnapshot {

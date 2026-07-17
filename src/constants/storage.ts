@@ -19,6 +19,7 @@ export const STORAGE_KEYS = {
   settings: `${EXTENSION_ID_PREFIX}:settings`,
   syncSnapshot: `${EXTENSION_ID_PREFIX}:sync-snapshot`,
   tags: `${EXTENSION_ID_PREFIX}:tags`,
+  tasks: `${EXTENSION_ID_PREFIX}:tasks`,
   uiPreferences: `${EXTENSION_ID_PREFIX}:ui-preferences`,
   upgradeEvents: `${EXTENSION_ID_PREFIX}:upgrade-events`,
   workspace: `${EXTENSION_ID_PREFIX}:workspace`,

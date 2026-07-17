@@ -30,21 +30,36 @@ export function WorkspaceExplorerErrorState({
     return null;
   }
 
+  const workspaceIssue = workspaceError ?? syncError;
+  const contextInvalidated =
+    workspaceIssue?.message.includes('Extension was reloaded') === true ||
+    workspaceIssue?.message.includes('Extension context invalidated') === true;
+
   return (
-    <div className="grid gap-2 border-b border-red-100 bg-red-50 px-4 py-3" role="alert">
+    <div
+      className={[
+        'grid gap-2 border-b px-4 py-3',
+        contextInvalidated ? 'border-amber-100 bg-amber-50' : 'border-red-100 bg-red-50',
+      ].join(' ')}
+      role="alert"
+    >
       {conversationError !== null ? (
         <ErrorNotice
           description="ChatGPT Workspace could not read this page's conversation structure. Refresh the ChatGPT tab, open an existing conversation, or keep using folders while detection recovers."
           detail={conversationError.message}
+          tone="error"
           title="Conversation detection needs attention"
         />
       ) : null}
-      {workspaceError !== null || syncError !== null ? (
+      {workspaceIssue !== null ? (
         <ErrorNotice
           description={
-            workspaceError?.message ?? syncError?.message ?? 'Workspace data could not be restored.'
+            contextInvalidated
+              ? 'The extension was reloaded while this ChatGPT tab was still open. Refresh this page once and the workspace will reconnect.'
+              : workspaceIssue.message
           }
-          title="Workspace needs attention"
+          tone={contextInvalidated ? 'warning' : 'error'}
+          title={contextInvalidated ? 'Refresh this ChatGPT tab' : 'Workspace needs attention'}
         />
       ) : null}
     </div>
@@ -54,16 +69,21 @@ export function WorkspaceExplorerErrorState({
 interface ErrorNoticeProps {
   readonly description: string;
   readonly detail?: string;
+  readonly tone: 'error' | 'warning';
   readonly title: string;
 }
 
-function ErrorNotice({ description, detail, title }: ErrorNoticeProps) {
+function ErrorNotice({ description, detail, title, tone }: ErrorNoticeProps) {
+  const titleClassName = tone === 'warning' ? 'text-amber-800' : 'text-red-700';
+  const descriptionClassName = tone === 'warning' ? 'text-amber-700' : 'text-red-600';
+  const detailClassName = tone === 'warning' ? 'text-amber-600' : 'text-red-500';
+
   return (
     <div>
-      <p className="text-sm font-semibold text-red-700">{title}</p>
-      <p className="mt-1 text-xs leading-5 text-red-600">{description}</p>
+      <p className={['text-sm font-semibold', titleClassName].join(' ')}>{title}</p>
+      <p className={['mt-1 text-xs leading-5', descriptionClassName].join(' ')}>{description}</p>
       {detail === undefined ? null : (
-        <p className="mt-1 text-xs leading-5 text-red-500">Details: {detail}</p>
+        <p className={['mt-1 text-xs leading-5', detailClassName].join(' ')}>Details: {detail}</p>
       )}
     </div>
   );

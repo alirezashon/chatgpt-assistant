@@ -31,7 +31,10 @@ export function ExplorerFilterTabs({
   selectedFolderName,
 }: ExplorerFilterTabsProps) {
   return (
-    <div className="border-b border-slate-200 px-4 py-3">
+    <div className="border-b border-slate-200 bg-white px-4 py-3">
+      <p className="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
+        Filter conversations
+      </p>
       <div className="flex flex-wrap gap-1" role="tablist" aria-label="Conversation filters">
         {selectedFolderName === null ? null : (
           <FilterButton
@@ -68,10 +71,10 @@ function FilterButton({ active, label, onClick }: FilterButtonProps) {
     <button
       aria-selected={active}
       className={[
-        'h-8 rounded-md px-3 text-xs font-semibold transition focus-visible:ring-4 focus-visible:ring-slate-200 focus-visible:outline-none',
+        'h-8 rounded-md border px-3 text-xs font-semibold transition focus-visible:ring-4 focus-visible:ring-emerald-100 focus-visible:outline-none',
         active
-          ? 'bg-slate-950 text-white'
-          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950',
+          ? 'border-slate-950 bg-slate-950 text-white'
+          : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-900',
       ].join(' ')}
       role="tab"
       type="button"

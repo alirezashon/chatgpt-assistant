@@ -4,7 +4,11 @@ import { DEFAULT_UI_PREFERENCES } from '@/app/synchronization/sync-config';
 import type { SyncEvents } from '@/app/synchronization/sync-events';
 import { syncStore } from '@/app/synchronization/sync-state';
 import type { WorkspaceSnapshot } from '@/app/synchronization/sync-types';
-import { createSnapshotSignature, toSyncError } from '@/app/synchronization/sync-utils';
+import {
+  createSnapshotSignature,
+  isExtensionContextInvalidatedError,
+  toSyncError,
+} from '@/app/synchronization/sync-utils';
 import type { StorageSnapshotManager } from '@/app/synchronization/storage-snapshot-manager';
 import { createWorkspaceSnapshot } from '@/app/synchronization/workspace-snapshot';
 import { workspaceStore } from '@/app/workspace/workspace-state';
@@ -78,6 +82,16 @@ export class PersistenceManager {
 
       return recoveredSnapshot;
     } catch (error) {
+      if (isExtensionContextInvalidatedError(error)) {
+        syncStore.setState({
+          error: new Error('Extension was reloaded. Refresh this ChatGPT tab to reconnect.'),
+          status: 'idle',
+        });
+        this.logger.warn('Workspace restore paused because the extension context was reloaded.');
+
+        return null;
+      }
+
       const syncError = toSyncError(error);
 
       syncStore.setState({
@@ -124,6 +138,18 @@ export class PersistenceManager {
 
       return snapshot;
     } catch (error) {
+      if (isExtensionContextInvalidatedError(error)) {
+        syncStore.setState({
+          error: new Error('Extension was reloaded. Refresh this ChatGPT tab to reconnect.'),
+          status: 'idle',
+        });
+        this.logger.warn(
+          'Workspace persistence paused because the extension context was reloaded.',
+        );
+
+        return null;
+      }
+
       const syncError = toSyncError(error);
 
       syncStore.setState({

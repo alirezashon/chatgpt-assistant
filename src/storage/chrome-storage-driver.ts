@@ -17,16 +17,20 @@ export class ChromeStorageDriver implements StorageDriver {
 
   public async clear(): Promise<void> {
     await new Promise<void>((resolve, reject) => {
-      this.area.clear(() => {
-        const error = chrome.runtime.lastError;
+      try {
+        this.area.clear(() => {
+          const error = chrome.runtime.lastError;
 
-        if (error !== undefined) {
-          reject(createStorageError('Failed to clear storage.', error));
-          return;
-        }
+          if (error !== undefined) {
+            reject(createStorageError('Failed to clear storage.', error));
+            return;
+          }
 
-        resolve();
-      });
+          resolve();
+        });
+      } catch (error) {
+        reject(createStorageException('Failed to clear storage.', error));
+      }
     });
   }
 
@@ -40,38 +44,46 @@ export class ChromeStorageDriver implements StorageDriver {
     keys: readonly StorageKey[],
   ): Promise<Readonly<Record<StorageKey, Value | undefined>>> {
     return await new Promise<Readonly<Record<StorageKey, Value | undefined>>>((resolve, reject) => {
-      this.area.get([...keys], (items) => {
-        const error = chrome.runtime.lastError;
+      try {
+        this.area.get([...keys], (items) => {
+          const error = chrome.runtime.lastError;
 
-        if (error !== undefined) {
-          reject(createStorageError('Failed to read from storage.', error));
-          return;
-        }
+          if (error !== undefined) {
+            reject(createStorageError('Failed to read from storage.', error));
+            return;
+          }
 
-        const values = items as Readonly<Record<string, unknown>>;
-        const result: Partial<Record<StorageKey, Value | undefined>> = {};
+          const values = items as Readonly<Record<string, unknown>>;
+          const result: Partial<Record<StorageKey, Value | undefined>> = {};
 
-        for (const key of keys) {
-          result[key] = values[key] as Value | undefined;
-        }
+          for (const key of keys) {
+            result[key] = values[key] as Value | undefined;
+          }
 
-        resolve(result as Readonly<Record<StorageKey, Value | undefined>>);
-      });
+          resolve(result as Readonly<Record<StorageKey, Value | undefined>>);
+        });
+      } catch (error) {
+        reject(createStorageException('Failed to read from storage.', error));
+      }
     });
   }
 
   public async remove(key: StorageKey): Promise<void> {
     await new Promise<void>((resolve, reject) => {
-      this.area.remove(key, () => {
-        const error = chrome.runtime.lastError;
+      try {
+        this.area.remove(key, () => {
+          const error = chrome.runtime.lastError;
 
-        if (error !== undefined) {
-          reject(createStorageError('Failed to remove storage value.', error));
-          return;
-        }
+          if (error !== undefined) {
+            reject(createStorageError('Failed to remove storage value.', error));
+            return;
+          }
 
-        resolve();
-      });
+          resolve();
+        });
+      } catch (error) {
+        reject(createStorageException('Failed to remove storage value.', error));
+      }
     });
   }
 
@@ -83,16 +95,20 @@ export class ChromeStorageDriver implements StorageDriver {
 
   public async setMany(values: Readonly<Partial<Record<StorageKey, StorageValue>>>): Promise<void> {
     await new Promise<void>((resolve, reject) => {
-      this.area.set(values, () => {
-        const error = chrome.runtime.lastError;
+      try {
+        this.area.set(values, () => {
+          const error = chrome.runtime.lastError;
 
-        if (error !== undefined) {
-          reject(createStorageError('Failed to write to storage.', error));
-          return;
-        }
+          if (error !== undefined) {
+            reject(createStorageError('Failed to write to storage.', error));
+            return;
+          }
 
-        resolve();
-      });
+          resolve();
+        });
+      } catch (error) {
+        reject(createStorageException('Failed to write to storage.', error));
+      }
     });
   }
 
@@ -114,10 +130,18 @@ export class ChromeStorageDriver implements StorageDriver {
       listener(storageChanges);
     };
 
-    chrome.storage.onChanged.addListener(handleChange);
+    try {
+      chrome.storage.onChanged.addListener(handleChange);
+    } catch {
+      return noopUnsubscribe;
+    }
 
     return () => {
-      chrome.storage.onChanged.removeListener(handleChange);
+      try {
+        chrome.storage.onChanged.removeListener(handleChange);
+      } catch {
+        // The extension context can disappear after an extension reload.
+      }
     };
   }
 }
@@ -140,6 +164,10 @@ interface ChromeStorageRuntime {
   };
 }
 
+function noopUnsubscribe(): void {
+  return undefined;
+}
+
 function hasChromeStorage(value: unknown): value is ChromeStorageRuntime {
   if (typeof value !== 'object' || value === null) {
     return false;
@@ -155,10 +183,34 @@ function hasChromeStorage(value: unknown): value is ChromeStorageRuntime {
 }
 
 function createStorageError(message: string, cause: chrome.runtime.LastError): AppError {
-  return new AppError('STORAGE_ERROR', message, {
-    cause,
-    context: {
-      chromeMessage: cause.message,
+  return new AppError(
+    isExtensionContextInvalidated(cause) ? 'EXTENSION_CONTEXT_INVALIDATED' : 'STORAGE_ERROR',
+    message,
+    {
+      cause,
+      context: {
+        chromeMessage: cause.message,
+      },
     },
-  });
+  );
+}
+
+function createStorageException(message: string, cause: unknown): AppError {
+  return new AppError(
+    isExtensionContextInvalidated(cause) ? 'EXTENSION_CONTEXT_INVALIDATED' : 'STORAGE_ERROR',
+    message,
+    {
+      cause,
+    },
+  );
+}
+
+function isExtensionContextInvalidated(value: unknown): boolean {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+
+  const message = (value as { readonly message?: unknown }).message;
+
+  return typeof message === 'string' && message.includes('Extension context invalidated');
 }

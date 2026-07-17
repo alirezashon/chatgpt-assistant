@@ -14,16 +14,16 @@ export interface WorkspaceThemePresetDefinition {
 }
 
 const CLASSIC_WORKSPACE_THEME_PRESET: WorkspaceThemePresetDefinition = {
-  accent: '#2563eb',
-  border: '#e2e8f0',
-  button: '#0f172a',
+  accent: '#0f766e',
+  border: '#d7e5df',
+  button: '#111827',
   buttonText: '#ffffff',
-  description: 'Clean, focused, close to the current product style.',
+  description: 'Crisp neutral styling with calm emerald accents.',
   id: 'classic',
-  muted: '#f8fafc',
+  muted: '#eef7f3',
   name: 'Classic',
-  surface: '#ffffff',
-  text: '#0f172a',
+  surface: '#fbfefd',
+  text: '#111827',
 };
 
 export const WORKSPACE_THEME_PRESETS: readonly WorkspaceThemePresetDefinition[] = [

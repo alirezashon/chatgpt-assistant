@@ -3,12 +3,21 @@ import { useEffect, useState } from 'react';
 import { APP_NAME, APP_VERSION } from '@/constants/app';
 import { PRIMARY_WORKSPACE_URL, isSupportedWorkspaceUrl } from '@/constants/supported-sites';
 
+const OPEN_SIDEBAR_MESSAGE = 'chatgpt-workspace:open-sidebar';
+
 type PopupStatus = 'checking' | 'ready' | 'unsupported';
 
 interface ActiveTabState {
   readonly status: PopupStatus;
   readonly url: string | null;
 }
+
+const FEATURE_CARDS: readonly (readonly [string, string])[] = [
+  ['1. Open', 'Click the panel button on any ChatGPT page.'],
+  ['2. Organize', 'Create folders and move the current chat.'],
+  ['3. Plan', 'Use Tasks for follow-ups and exports.'],
+  ['4. Move', 'Drag the round bubble anywhere.'],
+];
 
 export function PopupApp() {
   const [activeTab, setActiveTab] = useState<ActiveTabState>({
@@ -45,74 +54,119 @@ export function PopupApp() {
 
   return (
     <main
-      dir="rtl"
-      className="w-80 overflow-hidden bg-slate-950 text-white"
+      className="w-[390px] overflow-hidden bg-[#f8fbfa] text-slate-950"
       aria-label={`${APP_NAME} popup`}
     >
-      <section className="relative isolate px-5 py-5">
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_right,#22d3ee_0,#2563eb_34%,#0f172a_72%)]" />
-        <div className="absolute top-4 left-4 -z-10 h-20 w-20 rounded-full bg-white/15 blur-2xl" />
-
+      <section className="border-b border-emerald-100 bg-[linear-gradient(135deg,#ffffff_0%,#ecfdf5_56%,#fff7ed_100%)] px-5 py-5">
         <div className="flex items-center justify-between gap-3">
-          <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold text-cyan-50 backdrop-blur">
-            v{APP_VERSION}
-          </span>
-          <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/25 bg-white/15 p-1.5 shadow-lg shadow-slate-950/20 backdrop-blur">
-            <img alt="" className="h-full w-full rounded-xl" src={iconUrl} />
-          </span>
-        </div>
-
-        <div className="mt-5">
-          <h1 className="text-xl font-bold tracking-normal">{APP_NAME}</h1>
-          <p className="mt-2 text-sm leading-6 text-cyan-50/90">
-            {activeTab.status === 'checking'
-              ? 'در حال بررسی صفحه فعلی...'
-              : isReady
-                ? 'افزونه روی همین صفحه فعال است. از دکمه شناور داخل ChatGPT استفاده کنید.'
-                : 'این افزونه فعلا فقط روی ChatGPT فعال می‌شود.'}
-          </p>
-        </div>
-
-        <div className="mt-5 rounded-2xl border border-white/20 bg-white/10 p-3 backdrop-blur">
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-xs font-medium text-cyan-50/80">وضعیت دامنه</span>
-            <span
-              className={[
-                'rounded-full px-2.5 py-1 text-[11px] font-bold',
-                isReady ? 'bg-emerald-300 text-emerald-950' : 'bg-amber-300 text-amber-950',
-              ].join(' ')}
-            >
-              {isReady ? 'آماده' : 'نیاز به انتقال'}
+          <div className="flex items-center gap-3">
+            <span className="flex h-12 w-12 items-center justify-center rounded-full border border-white/80 bg-[linear-gradient(135deg,#111827,#0f766e,#f59e0b)] p-2 text-white shadow-lg shadow-emerald-900/15">
+              <img alt="" className="h-full w-full rounded-md" src={iconUrl} />
             </span>
+            <div>
+              <h1 className="text-lg font-semibold tracking-normal">{APP_NAME}</h1>
+              <p className="text-xs font-medium text-slate-600">
+                Version {APP_VERSION} - local workspace
+              </p>
+            </div>
           </div>
-          <p className="mt-3 break-all text-left text-[11px] leading-5 text-cyan-50/75" dir="ltr">
+          <StatusPill status={activeTab.status} />
+        </div>
+
+        <div className="mt-5 rounded-lg border border-white/80 bg-white/80 p-3 shadow-sm">
+          <p className="text-sm font-semibold text-slate-950">
+            {activeTab.status === 'checking'
+              ? 'Checking the active tab...'
+              : isReady
+                ? 'Ready. Open the panel, then use the guide at the top.'
+                : 'Open ChatGPT first. The workspace panel only runs there.'}
+          </p>
+          <p className="mt-2 break-all text-xs leading-5 text-slate-500">
             {activeTab.url ?? 'No active tab URL'}
           </p>
         </div>
+      </section>
 
-        {isReady ? (
+      <section className="grid gap-4 px-5 py-4">
+        <div className="grid gap-2">
           <button
-            className="mt-5 h-11 w-full rounded-xl bg-white px-4 text-sm font-bold text-slate-950 transition hover:bg-cyan-50 focus-visible:ring-4 focus-visible:ring-white/35 focus-visible:outline-none"
+            className="h-11 w-full rounded-md bg-[linear-gradient(135deg,#111827,#0f766e)] px-4 text-sm font-semibold text-white shadow-lg shadow-emerald-900/15 transition hover:brightness-110 focus-visible:ring-4 focus-visible:ring-emerald-200 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={!isReady}
             type="button"
             onClick={() => {
-              window.close();
+              void openWorkspaceSidebar();
             }}
           >
-            بستن
+            Open Workspace Panel
           </button>
-        ) : (
-          <button
-            className="mt-5 h-11 w-full rounded-xl bg-white px-4 text-sm font-bold text-slate-950 transition hover:bg-cyan-50 focus-visible:ring-4 focus-visible:ring-white/35 focus-visible:outline-none"
-            type="button"
-            onClick={() => {
-              void openPrimaryWorkspace(activeTab.url);
-            }}
-          >
-            رفتن به ChatGPT
-          </button>
-        )}
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              className="h-10 rounded-md border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-800 transition hover:border-emerald-200 hover:bg-emerald-50 focus-visible:ring-4 focus-visible:ring-emerald-100 focus-visible:outline-none"
+              type="button"
+              onClick={() => {
+                void openOptionsPage();
+              }}
+            >
+              Settings
+            </button>
+            {isReady ? (
+              <button
+                className="h-10 rounded-md border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-800 transition hover:border-emerald-200 hover:bg-emerald-50 focus-visible:ring-4 focus-visible:ring-emerald-100 focus-visible:outline-none"
+                type="button"
+                onClick={() => {
+                  window.close();
+                }}
+              >
+                Close
+              </button>
+            ) : (
+              <button
+                className="h-10 rounded-md border border-emerald-300 bg-emerald-50 px-3 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100 focus-visible:ring-4 focus-visible:ring-emerald-100 focus-visible:outline-none"
+                type="button"
+                onClick={() => {
+                  void openPrimaryWorkspace(activeTab.url);
+                }}
+              >
+                Open ChatGPT
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          {FEATURE_CARDS.map(([title, body]) => (
+            <div key={title} className="rounded-md border border-slate-200 bg-white p-3 shadow-sm">
+              <p className="text-sm font-semibold text-slate-950">{title}</p>
+              <p className="mt-1 text-xs leading-5 text-slate-600">{body}</p>
+            </div>
+          ))}
+        </div>
+
+        <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium leading-5 text-amber-800">
+          After reloading the extension, refresh open ChatGPT tabs once so the content script
+          reconnects.
+        </p>
       </section>
     </main>
+  );
+}
+
+function StatusPill({ status }: { readonly status: PopupStatus }) {
+  const ready = status === 'ready';
+
+  return (
+    <span
+      className={[
+        'rounded-md px-2.5 py-1 text-xs font-bold',
+        ready
+          ? 'bg-emerald-100 text-emerald-800'
+          : status === 'checking'
+            ? 'bg-slate-100 text-slate-600'
+            : 'bg-amber-100 text-amber-800',
+      ].join(' ')}
+    >
+      {ready ? 'Ready' : status === 'checking' ? 'Checking' : 'ChatGPT needed'}
+    </span>
   );
 }
 
@@ -146,6 +200,43 @@ async function openPrimaryWorkspace(currentUrl: string | null): Promise<void> {
   }
 
   window.open(PRIMARY_WORKSPACE_URL, '_blank', 'noopener,noreferrer');
+  window.close();
+}
+
+async function openWorkspaceSidebar(): Promise<void> {
+  if (!hasChromeTabs(globalThis.chrome)) {
+    window.close();
+    return;
+  }
+
+  const [activeTab] = await chrome.tabs.query({
+    active: true,
+    currentWindow: true,
+  });
+
+  if (activeTab?.id !== undefined) {
+    try {
+      await chrome.tabs.sendMessage(activeTab.id, {
+        type: OPEN_SIDEBAR_MESSAGE,
+      });
+    } catch {
+      await chrome.tabs.reload(activeTab.id);
+    }
+  }
+
+  window.close();
+}
+
+async function openOptionsPage(): Promise<void> {
+  const chromeGlobal = globalThis.chrome;
+
+  if (hasRuntimeOptions(chromeGlobal)) {
+    await chromeGlobal.runtime.openOptionsPage();
+    window.close();
+    return;
+  }
+
+  window.open('options.html', '_blank', 'noopener,noreferrer');
   window.close();
 }
 
@@ -185,4 +276,24 @@ function hasRuntimeGetUrl(value: unknown): value is ChromeRuntimeGetUrl {
   };
 
   return typeof candidate.runtime?.getURL === 'function';
+}
+
+interface ChromeRuntimeOptions {
+  readonly runtime: {
+    openOptionsPage(): Promise<void>;
+  };
+}
+
+function hasRuntimeOptions(value: unknown): value is ChromeRuntimeOptions {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+
+  const candidate = value as {
+    readonly runtime?: {
+      readonly openOptionsPage?: unknown;
+    };
+  };
+
+  return typeof candidate.runtime?.openOptionsPage === 'function';
 }

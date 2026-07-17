@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { ActionMenu } from '@/content/components/actions/ActionMenu';
 import { ActionToolbar } from '@/content/components/actions/ActionToolbar';
@@ -20,9 +20,13 @@ import {
 import { WorkspaceOnboardingPanel } from '@/content/components/workspace-explorer/WorkspaceOnboardingPanel';
 import { WorkspaceSearchPanel } from '@/content/components/workspace-explorer/WorkspaceSearchPanel';
 import { WorkspaceStatsView } from '@/content/components/workspace-explorer/WorkspaceStatsView';
+import { WorkspaceTasksPanel } from '@/content/components/workspace-explorer/WorkspaceTasksPanel';
+
+type WorkspacePanel = 'tasks' | 'workspace';
 
 export function WorkspaceExplorer() {
   const controller = useWorkspaceExplorerController();
+  const [activePanel, setActivePanel] = useState<WorkspacePanel>('workspace');
   const selectedIds = controller.quickActions.selectedConversationIds;
   const selectedIdSet = useMemo(() => new Set(selectedIds), [selectedIds]);
   const menuActions = controller.quickActions.actions.getActions(
@@ -59,88 +63,123 @@ export function WorkspaceExplorer() {
   return (
     <section className="flex min-h-0 flex-1 flex-col">
       <WorkspaceExplorerHeader onCreateFolder={controller.openCreateDialog} />
-      <WorkspaceExplorerErrorState
-        conversationError={controller.conversationError}
-        syncError={controller.syncError}
-        workspaceError={controller.workspaceError}
-      />
-      {!controller.uiPreferences.onboardingDismissed ? (
-        <WorkspaceOnboardingPanel
-          hasConversation={controller.model.activeConversation !== null}
-          hasFolders={controller.workspaceState.folders.folders.length > 0}
-          onCreateFolder={controller.openCreateDialog}
-          onDismiss={controller.dismissOnboarding}
-        />
-      ) : null}
-      <WorkspaceSearchPanel />
-      <ActionToolbar
-        selectedCount={selectedIds.length}
-        onClear={controller.quickActions.actions.clearSelection}
-        onExecute={(actionId) => {
-          void controller.quickActions.actions.execute(actionId, selectedIds);
-        }}
-      />
+      <div className="border-b border-emerald-100 bg-white px-5 py-3">
+        <div className="grid grid-cols-2 rounded-md border border-emerald-100 bg-emerald-50/70 p-0.5">
+          {(['workspace', 'tasks'] as const).map((panel) => (
+            <button
+              key={panel}
+              aria-pressed={activePanel === panel}
+              className={[
+                'h-9 rounded px-3 text-sm font-semibold transition',
+                activePanel === panel
+                  ? 'bg-slate-950 text-white shadow-sm'
+                  : 'text-slate-600 hover:bg-white hover:text-emerald-900',
+              ].join(' ')}
+              type="button"
+              onClick={() => {
+                setActivePanel(panel);
+              }}
+            >
+              {panel === 'workspace' ? 'Workspace' : 'Tasks'}
+            </button>
+          ))}
+        </div>
+      </div>
 
-      {controller.isLoading ? (
-        <WorkspaceExplorerSkeleton />
+      {activePanel === 'tasks' ? (
+        <WorkspaceTasksPanel
+          activeConversationTitle={controller.model.activeConversation?.title ?? null}
+          assignedCount={controller.model.stats.assignedConversations}
+          folderCount={controller.model.stats.folderCount}
+          totalCount={controller.model.stats.totalConversations}
+          onCreateFolder={controller.openCreateDialog}
+        />
       ) : (
         <>
-          <ConversationAssignmentPanel
-            activeConversation={controller.model.activeConversation}
-            assignment={controller.model.activeConversationAssignment}
-            folders={controller.workspaceState.folders.folders}
-            isSaving={controller.workspaceState.assignments.status === 'saving'}
-            onAssign={(folderId) => {
-              void controller.assignActiveConversation(folderId);
-            }}
-            onRemove={() => {
-              void controller.removeActiveConversationAssignment();
+          <WorkspaceExplorerErrorState
+            conversationError={controller.conversationError}
+            syncError={controller.syncError}
+            workspaceError={controller.workspaceError}
+          />
+          {!controller.uiPreferences.onboardingDismissed ? (
+            <WorkspaceOnboardingPanel
+              hasConversation={controller.model.activeConversation !== null}
+              hasFolders={controller.workspaceState.folders.folders.length > 0}
+              onCreateFolder={controller.openCreateDialog}
+              onDismiss={controller.dismissOnboarding}
+            />
+          ) : null}
+          <WorkspaceSearchPanel />
+          <ActionToolbar
+            selectedCount={selectedIds.length}
+            onClear={controller.quickActions.actions.clearSelection}
+            onExecute={(actionId) => {
+              void controller.quickActions.actions.execute(actionId, selectedIds);
             }}
           />
-          <ScrollableArea className="flex-1">
-            <FolderTreeView
-              expandedFolderIds={new Set(controller.uiPreferences.expandedFolderIds)}
-              folderNodes={controller.model.folderNodes}
-              openMenuId={controller.openMenuId}
-              selectedFolderId={controller.model.selectedFolder?.id ?? null}
-              onDelete={controller.openDeleteDialog}
-              onMoveDown={(folder) => {
-                void controller.moveFolder(folder, 'down');
-              }}
-              onMoveUp={(folder) => {
-                void controller.moveFolder(folder, 'up');
-              }}
-              onRename={controller.openRenameDialog}
-              onSelect={(folder) => {
-                void controller.selectFolder(folder);
-              }}
-              onToggleExpanded={controller.toggleExpanded}
-              onToggleMenu={controller.toggleMenu}
-            />
-            <ExplorerFilterTabs
-              activeFilter={controller.filter}
-              selectedFolderName={controller.model.selectedFolder?.name ?? null}
-              onSelect={controller.selectFilter}
-            />
-            <ConversationListView
-              conversations={controller.model.conversations}
-              filter={controller.filter}
-              selectedConversationIds={selectedIdSet}
-              selectedFolderName={controller.model.selectedFolder?.name ?? null}
-              onOpenContextMenu={(conversationId, x, y) => {
-                const targetIds = selectedIdSet.has(conversationId)
-                  ? selectedIds
-                  : [conversationId];
 
-                controller.quickActions.actions.openMenu({ targetIds, x, y });
-              }}
-              onRangeSelect={(conversationIds) => {
-                controller.quickActions.actions.setSelectedConversationIds(conversationIds);
-              }}
-              onToggleSelection={controller.quickActions.actions.toggleSelection}
-            />
-            <WorkspaceStatsView stats={controller.model.stats} />
-          </ScrollableArea>
+          {controller.isLoading ? (
+            <WorkspaceExplorerSkeleton />
+          ) : (
+            <>
+              <ConversationAssignmentPanel
+                activeConversation={controller.model.activeConversation}
+                assignment={controller.model.activeConversationAssignment}
+                folders={controller.workspaceState.folders.folders}
+                isSaving={controller.workspaceState.assignments.status === 'saving'}
+                onAssign={(folderId) => {
+                  void controller.assignActiveConversation(folderId);
+                }}
+                onRemove={() => {
+                  void controller.removeActiveConversationAssignment();
+                }}
+              />
+              <ScrollableArea className="flex-1">
+                <FolderTreeView
+                  expandedFolderIds={new Set(controller.uiPreferences.expandedFolderIds)}
+                  folderNodes={controller.model.folderNodes}
+                  openMenuId={controller.openMenuId}
+                  selectedFolderId={controller.model.selectedFolder?.id ?? null}
+                  onDelete={controller.openDeleteDialog}
+                  onMoveDown={(folder) => {
+                    void controller.moveFolder(folder, 'down');
+                  }}
+                  onMoveUp={(folder) => {
+                    void controller.moveFolder(folder, 'up');
+                  }}
+                  onRename={controller.openRenameDialog}
+                  onSelect={(folder) => {
+                    void controller.selectFolder(folder);
+                  }}
+                  onToggleExpanded={controller.toggleExpanded}
+                  onToggleMenu={controller.toggleMenu}
+                />
+                <ExplorerFilterTabs
+                  activeFilter={controller.filter}
+                  selectedFolderName={controller.model.selectedFolder?.name ?? null}
+                  onSelect={controller.selectFilter}
+                />
+                <ConversationListView
+                  conversations={controller.model.conversations}
+                  filter={controller.filter}
+                  selectedConversationIds={selectedIdSet}
+                  selectedFolderName={controller.model.selectedFolder?.name ?? null}
+                  onOpenContextMenu={(conversationId, x, y) => {
+                    const targetIds = selectedIdSet.has(conversationId)
+                      ? selectedIds
+                      : [conversationId];
+
+                    controller.quickActions.actions.openMenu({ targetIds, x, y });
+                  }}
+                  onRangeSelect={(conversationIds) => {
+                    controller.quickActions.actions.setSelectedConversationIds(conversationIds);
+                  }}
+                  onToggleSelection={controller.quickActions.actions.toggleSelection}
+                />
+                <WorkspaceStatsView stats={controller.model.stats} />
+              </ScrollableArea>
+            </>
+          )}
         </>
       )}
 

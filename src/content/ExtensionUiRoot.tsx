@@ -8,9 +8,13 @@ export function ExtensionUiRoot() {
   return (
     <ToastProvider>
       <WorkspaceLayout
+        floatingButtonPosition={sidebar.floatingButtonPosition}
         isSidebarOpen={sidebar.isOpen}
         onCloseSidebar={sidebar.close}
+        onMoveFloatingButton={sidebar.moveFloatingButton}
+        onResizeSidebar={sidebar.resize}
         onToggleSidebar={sidebar.toggle}
+        sidebarWidth={sidebar.sidebarWidth}
       />
     </ToastProvider>
   );

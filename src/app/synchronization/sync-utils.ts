@@ -1,4 +1,5 @@
 import type { WorkspaceSnapshot } from '@/app/synchronization/sync-types';
+import { AppError } from '@/shared/errors';
 
 export function createSnapshotSignature(snapshot: WorkspaceSnapshot): string {
   return JSON.stringify({
@@ -26,4 +27,16 @@ export function createSnapshotSignature(snapshot: WorkspaceSnapshot): string {
 
 export function toSyncError(error: unknown): Error {
   return error instanceof Error ? error : new Error('Unknown synchronization error.');
+}
+
+export function isExtensionContextInvalidatedError(error: unknown): boolean {
+  if (error instanceof AppError && error.code === 'EXTENSION_CONTEXT_INVALIDATED') {
+    return true;
+  }
+
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  return error.message.includes('Extension context invalidated');
 }

@@ -96,9 +96,11 @@ function createSnapshot(): WorkspaceSnapshot {
     schemaVersion: 1,
     uiPreferences: {
       expandedFolderIds: [],
+      floatingButtonPosition: null,
       onboardingDismissed: true,
       recentlyUsedFolderIds: [],
       sidebarOpen: true,
+      sidebarWidth: 380,
     },
     workspace: {
       activeConversationId: 'conversation-1',

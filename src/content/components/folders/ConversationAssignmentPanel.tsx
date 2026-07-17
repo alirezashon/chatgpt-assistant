@@ -23,15 +23,17 @@ export function ConversationAssignmentPanel({
 
   return (
     <section className="border-b border-slate-200 px-6 pb-4">
-      <div className="rounded-xl border border-slate-200 bg-white/80 p-3 shadow-sm">
+      <div className="rounded-lg border border-emerald-100 bg-white p-3 shadow-sm">
         <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-400">
-          Current conversation
+          Step 2 - Move current chat
         </p>
         <h4 className="mt-2 line-clamp-2 text-sm font-semibold leading-5 text-slate-900">
           {activeConversation?.title ?? 'No conversation detected'}
         </h4>
         <p className="mt-1 text-xs text-slate-500">
-          {selectedFolder === null ? 'Not in a folder' : `In ${selectedFolder.name}`}
+          {selectedFolder === null
+            ? 'Choose a folder below to organize this chat.'
+            : `This chat is in ${selectedFolder.name}.`}
         </p>
 
         <div className="mt-3 flex gap-2">

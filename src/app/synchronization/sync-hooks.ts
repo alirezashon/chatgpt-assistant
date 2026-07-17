@@ -6,12 +6,14 @@ import {
 } from '@/app/synchronization/synchronization-engine';
 import type { SyncEventListener, SyncEventName } from '@/app/synchronization/sync-events';
 import { syncStore } from '@/app/synchronization/sync-state';
-import type { SyncState, UiPreferences } from '@/app/synchronization/sync-types';
+import type { SyncState, UiPosition, UiPreferences } from '@/app/synchronization/sync-types';
 
 export interface SyncActions {
   readonly markRecentlyUsedFolder: (folderId: string) => void;
   readonly requestSync: () => void;
+  readonly setFloatingButtonPosition: (position: UiPosition) => void;
   readonly setSidebarOpen: (sidebarOpen: boolean) => void;
+  readonly setSidebarWidth: (sidebarWidth: number) => void;
   readonly toggleExpandedFolder: (folderId: string) => void;
   readonly updateUiPreferences: (patch: Partial<UiPreferences>) => void;
 }
@@ -46,6 +48,24 @@ export function useSyncActions(
     (sidebarOpen: boolean) => {
       updateUiPreferences({
         sidebarOpen,
+      });
+    },
+    [updateUiPreferences],
+  );
+
+  const setSidebarWidth = useCallback(
+    (sidebarWidth: number) => {
+      updateUiPreferences({
+        sidebarWidth,
+      });
+    },
+    [updateUiPreferences],
+  );
+
+  const setFloatingButtonPosition = useCallback(
+    (position: UiPosition) => {
+      updateUiPreferences({
+        floatingButtonPosition: position,
       });
     },
     [updateUiPreferences],
@@ -90,14 +110,18 @@ export function useSyncActions(
     () => ({
       markRecentlyUsedFolder,
       requestSync,
+      setFloatingButtonPosition,
       setSidebarOpen,
+      setSidebarWidth,
       toggleExpandedFolder,
       updateUiPreferences,
     }),
     [
       markRecentlyUsedFolder,
       requestSync,
+      setFloatingButtonPosition,
       setSidebarOpen,
+      setSidebarWidth,
       toggleExpandedFolder,
       updateUiPreferences,
     ],

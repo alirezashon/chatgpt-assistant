@@ -7,15 +7,7 @@ import type { EntityId, Folder } from '@/shared/types';
 
 /** Legacy workspace action icon names. */
 export type ActionIcon =
-  | 'copy'
-  | 'external'
-  | 'folder'
-  | 'heart'
-  | 'menu'
-  | 'rename'
-  | 'select'
-  | 'sparkle'
-  | 'trash';
+  'copy' | 'external' | 'folder' | 'heart' | 'menu' | 'rename' | 'select' | 'sparkle' | 'trash';
 
 /** Legacy workspace action kind. */
 export type ActionKind = 'danger' | 'normal';
@@ -120,13 +112,16 @@ export type ActionCategory =
   | 'coding'
   | 'email'
   | 'learning'
+  | 'language'
+  | 'media'
   | 'meetings'
   | 'productivity'
   | 'research'
   | 'writing';
 
 /** Action artifact type. */
-export type ActionArtifactType = 'Checklist' | 'Markdown' | 'Notes' | 'Table';
+export type ActionArtifactType =
+  'Audio' | 'Checklist' | 'Image' | 'Markdown' | 'Notes' | 'Table' | 'Transcript' | 'Video';
 
 /** Supported context requirements for an action. */
 export interface ActionSupportedContext {

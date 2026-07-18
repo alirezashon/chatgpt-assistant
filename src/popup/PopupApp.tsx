@@ -7,6 +7,7 @@ import { createMessage } from '@/lib/messaging';
 
 import { buildHomePageContext } from './home/home-context';
 import { HomeExperience } from './home/HomeExperience';
+import { capturePageContextFallback } from './home/page-context-fallback';
 
 export function PopupApp() {
   const activeTab = useActiveTab();
@@ -32,17 +33,17 @@ export function PopupApp() {
       setContextLoading(true);
 
       try {
-        const response = await sendTabMessage<{ readonly data: PageContextSnapshot; readonly ok: true }>(
-          tabId,
-          createMessage('popup', 'context.getActive', undefined),
-        );
+        const response = await sendTabMessage<{
+          readonly data: PageContextSnapshot;
+          readonly ok: true;
+        }>(tabId, createMessage('popup', 'context.getActive', undefined));
 
         if (!cancelled) {
           setPageContext(response.data);
         }
       } catch {
         if (!cancelled) {
-          setPageContext(null);
+          setPageContext(await capturePageContextFallback(tabId));
         }
       } finally {
         if (!cancelled) {

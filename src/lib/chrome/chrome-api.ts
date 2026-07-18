@@ -25,6 +25,14 @@ interface ChromeSidePanelLike {
   };
 }
 
+interface ChromePermissionsLike {
+  readonly permissions?: typeof chrome.permissions;
+}
+
+interface ChromeScriptingLike {
+  readonly scripting?: typeof chrome.scripting;
+}
+
 export function hasChromeRuntime(): boolean {
   const candidate = globalThis.chrome as ChromeRuntimeLike | undefined;
 
@@ -50,6 +58,16 @@ export async function getActiveTab(): Promise<chrome.tabs.Tab | null> {
   });
 
   return tabs[0] ?? null;
+}
+
+export async function getTab(tabId: number): Promise<chrome.tabs.Tab | null> {
+  const candidate = globalThis.chrome as ChromeTabsLike | undefined;
+
+  if (candidate?.tabs === undefined) {
+    return null;
+  }
+
+  return candidate.tabs.get(tabId);
 }
 
 export async function sendRuntimeMessage<Response>(message: unknown): Promise<Response> {
@@ -100,6 +118,40 @@ export async function sendTabMessage<Response>(tabId: number, message: unknown):
   return response as Response;
 }
 
+export async function containsPermissions(input: chrome.permissions.Permissions): Promise<boolean> {
+  const candidate = globalThis.chrome as ChromePermissionsLike | undefined;
+
+  if (candidate?.permissions === undefined) {
+    return true;
+  }
+
+  return candidate.permissions.contains(input);
+}
+
+export async function requestPermissions(input: chrome.permissions.Permissions): Promise<boolean> {
+  const candidate = globalThis.chrome as ChromePermissionsLike | undefined;
+
+  if (candidate?.permissions === undefined) {
+    return true;
+  }
+
+  return candidate.permissions.request(input);
+}
+
+export async function executeScript<Args extends unknown[], Result>(
+  input: chrome.scripting.ScriptInjection<Args, Result>,
+): Promise<readonly chrome.scripting.InjectionResult<Awaited<Result>>[]> {
+  const candidate = globalThis.chrome as ChromeScriptingLike | undefined;
+
+  if (candidate?.scripting === undefined) {
+    throw new Error('Chrome scripting API is unavailable.');
+  }
+
+  const results = await candidate.scripting.executeScript(input);
+
+  return results as readonly chrome.scripting.InjectionResult<Awaited<Result>>[];
+}
+
 export async function openOptionsPage(): Promise<void> {
   const candidate = globalThis.chrome as ChromeRuntimeLike | undefined;
 
@@ -118,6 +170,16 @@ export async function openTab(url: string): Promise<void> {
   }
 
   await candidate.tabs.create({ url });
+}
+
+export async function activateTab(tabId: number): Promise<void> {
+  const candidate = globalThis.chrome as ChromeTabsLike | undefined;
+
+  if (candidate?.tabs === undefined) {
+    return;
+  }
+
+  await candidate.tabs.update(tabId, { active: true });
 }
 
 export function createContextMenu(input: chrome.contextMenus.CreateProperties): void {

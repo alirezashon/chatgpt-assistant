@@ -1,5 +1,7 @@
 export type PageKind =
   | 'article'
+  | 'chat-empty'
+  | 'chat-thread'
   | 'code'
   | 'document'
   | 'email'
@@ -10,6 +12,7 @@ export type PageKind =
   | 'video';
 
 export type BrowserApplication =
+  | 'chatgpt'
   | 'generic-web'
   | 'github'
   | 'gmail'

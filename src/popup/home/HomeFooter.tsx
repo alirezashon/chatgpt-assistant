@@ -7,9 +7,11 @@ import { triggerCommand } from './home-runner';
 
 export function HomeFooter({
   canMessageTab,
+  copy,
   tabId,
 }: {
   readonly canMessageTab: boolean;
+  readonly copy: { readonly palette: string };
   readonly tabId: number | undefined;
 }) {
   return (
@@ -23,7 +25,7 @@ export function HomeFooter({
           void triggerCommand(tabId, COMMAND_IDS.runtimeOpenPalette);
         }}
       >
-        Palette
+        {copy.palette}
       </Button>
       <KeyboardShortcut>Ctrl Shift K</KeyboardShortcut>
     </footer>

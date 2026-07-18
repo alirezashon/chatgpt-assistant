@@ -1,10 +1,32 @@
-import { Minimize2, Square, X } from 'lucide-react';
+import { ArrowLeft, Square, X, type LucideIcon } from 'lucide-react';
 
-import { Badge, Button, IconButton, Panel, StatusIndicator } from '@/design-system';
+import { Badge, Button, Panel, StatusIndicator } from '@/design-system';
 
 import type { SidebarTask, SidebarTaskStatus } from './sidebar-workspace-types';
 
-export function TaskHeader({ task }: { readonly task: SidebarTask }) {
+interface SidebarCopy {
+  readonly backToPage: string;
+  readonly cancel: string;
+  readonly completed: string;
+  readonly failed: string;
+  readonly running: string;
+  readonly seconds: string;
+  readonly waiting: string;
+}
+
+export function TaskHeader({
+  backIcon: BackIcon = ArrowLeft,
+  copy,
+  onBackToPage,
+  onCancelTask,
+  task,
+}: {
+  readonly backIcon?: LucideIcon;
+  readonly copy: SidebarCopy;
+  readonly onBackToPage: () => void;
+  readonly onCancelTask: () => void;
+  readonly task: SidebarTask;
+}) {
   return (
     <Panel className="sticky top-0 z-10 rounded-none border-x-0 border-t-0 bg-[var(--ds-color-surface)] px-[var(--ds-space-4)] py-[var(--ds-space-3)] backdrop-blur-[var(--ds-blur-panel)]">
       <div className="flex items-center justify-between gap-[var(--ds-space-3)]">
@@ -17,32 +39,34 @@ export function TaskHeader({ task }: { readonly task: SidebarTask }) {
               {task.title}
             </h1>
             <div className="mt-[var(--ds-space-1)] flex items-center gap-[var(--ds-space-2)] text-[length:var(--ds-font-caption)] leading-[var(--ds-line-caption)] text-[color:var(--ds-color-text-muted)]">
-              <StatusIndicator intent={statusIntent(task.status)} label={statusLabel(task.status)} />
-              <span>{task.durationSec.toString()} sec</span>
+              <StatusIndicator
+                intent={statusIntent(task.status)}
+                label={statusLabel(task.status, copy)}
+              />
+              <span>
+                {task.durationSec.toString()} {copy.seconds}
+              </span>
             </div>
           </div>
         </div>
         <div className="flex items-center gap-[var(--ds-space-2)]">
-          <Badge>{task.status}</Badge>
-          <Button icon={X} size="sm" variant="secondary">
-            Cancel
+          <Button icon={BackIcon} size="sm" variant="secondary" onClick={onBackToPage}>
+            {copy.backToPage}
           </Button>
-          <IconButton icon={Minimize2} label="Collapse task" size="sm" />
+          <Badge>{statusLabel(task.status, copy)}</Badge>
+          {task.status === 'running' || task.status === 'waiting' ? (
+            <Button icon={X} size="sm" variant="secondary" onClick={onCancelTask}>
+              {copy.cancel}
+            </Button>
+          ) : null}
         </div>
       </div>
     </Panel>
   );
 }
 
-function statusLabel(status: SidebarTaskStatus): string {
-  const labels = {
-    completed: 'Completed',
-    failed: 'Failed',
-    running: 'Running',
-    waiting: 'Waiting',
-  } satisfies Record<SidebarTaskStatus, string>;
-
-  return labels[status];
+function statusLabel(status: SidebarTaskStatus, copy: SidebarCopy): string {
+  return copy[status];
 }
 
 function statusIntent(status: SidebarTaskStatus) {

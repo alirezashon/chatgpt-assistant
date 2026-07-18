@@ -6,12 +6,18 @@ import { getExtensionUrl, openOptionsPage } from '@/lib/chrome/chrome-api';
 
 import type { HomeStatus } from './home-types';
 
-export function HomeHeader({ status }: { readonly status: HomeStatus }) {
-  const statusLabel = {
-    offline: 'Offline',
-    ready: 'Ready',
-    working: 'Working',
-  } satisfies Record<HomeStatus, string>;
+interface HomeHeaderCopy {
+  readonly openSettings: string;
+  readonly status: Record<HomeStatus, string>;
+}
+
+export function HomeHeader({
+  copy,
+  status,
+}: {
+  readonly copy: HomeHeaderCopy;
+  readonly status: HomeStatus;
+}) {
   const statusIntent = status === 'offline' ? 'warning' : status === 'working' ? 'info' : 'success';
 
   return (
@@ -27,13 +33,13 @@ export function HomeHeader({ status }: { readonly status: HomeStatus }) {
             {APP_NAME}
           </h1>
           <div className="text-[length:var(--ds-font-caption)] leading-[var(--ds-line-caption)] text-[color:var(--ds-color-text-muted)]">
-            <StatusIndicator intent={statusIntent} label={statusLabel[status]} />
+            <StatusIndicator intent={statusIntent} label={copy.status[status]} />
           </div>
         </div>
       </div>
       <IconButton
         icon={Settings}
-        label="Open settings"
+        label={copy.openSettings}
         size="sm"
         onClick={() => {
           void openOptionsPage();

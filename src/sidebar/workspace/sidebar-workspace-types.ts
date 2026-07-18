@@ -39,9 +39,24 @@ export interface SidebarResult {
 /** Durable artifact. */
 export interface SidebarArtifact {
   readonly id: string;
-  readonly format: 'Checklist' | 'Markdown' | 'Notes' | 'Table';
+  readonly format:
+    'Audio' | 'Checklist' | 'Image' | 'Markdown' | 'Notes' | 'Table' | 'Transcript' | 'Video';
   readonly pinned: boolean;
   readonly title: string;
+}
+
+/** Media asset attached to a task workspace. */
+export interface SidebarMediaAsset {
+  readonly dataUrl?: string;
+  readonly durationSec?: number;
+  readonly height?: number;
+  readonly id: string;
+  readonly kind: 'image' | 'video';
+  readonly mimeType: string;
+  readonly name: string;
+  readonly source: 'page' | 'upload' | 'generated';
+  readonly sourceUrl?: string;
+  readonly width?: number;
 }
 
 /** Follow-up action. */
@@ -64,6 +79,7 @@ export interface SidebarTask {
   readonly messages: readonly SidebarTaskMessage[];
   readonly results: readonly SidebarResult[];
   readonly artifacts: readonly SidebarArtifact[];
+  readonly mediaAssets?: readonly SidebarMediaAsset[];
   readonly status: SidebarTaskStatus;
   readonly title: string;
   readonly updatedAt: string;
@@ -211,7 +227,7 @@ export function createSidebarTaskFromAction(input: {
         title: `${input.action.title} result`,
       },
     ],
-    status: 'running',
+    status: 'completed',
     title: taskTitle,
     updatedAt: now,
   };
@@ -267,7 +283,12 @@ function contextItems(context: SidebarTaskContextInput | null): readonly Sidebar
       : [{ label: 'Confidence', value: `${context.confidence.toString()}%` }]),
     ...(context.selectedText === undefined
       ? []
-      : [{ label: 'Selection', value: `${context.selectedText.slice(0, 72)}${context.selectedText.length > 72 ? '...' : ''}` }]),
+      : [
+          {
+            label: 'Selection',
+            value: `${context.selectedText.slice(0, 72)}${context.selectedText.length > 72 ? '...' : ''}`,
+          },
+        ]),
   ];
 }
 
@@ -327,7 +348,10 @@ function followUpsForAction(action: SidebarTaskActionInput): readonly SidebarFol
     { id: 'improve', title: 'Improve' },
     { id: 'export', title: 'Export' },
     { id: 'save-memory', title: 'Save To Memory' },
-    { id: action.title.includes('Workflow') ? 'run-again' : 'create-workflow', title: action.title.includes('Workflow') ? 'Run Again' : 'Create Workflow' },
+    {
+      id: action.title.includes('Workflow') ? 'run-again' : 'create-workflow',
+      title: action.title.includes('Workflow') ? 'Run Again' : 'Create Workflow',
+    },
   ];
 }
 
@@ -348,7 +372,11 @@ function resultContentForAction(action: SidebarTaskActionInput): readonly string
     return ['Identify risk areas', 'Check missing tests', 'Summarize review-ready changes'];
   }
 
-  return ['Capture the important context', 'Produce a structured result', 'Attach reusable artifacts'];
+  return [
+    'Capture the important context',
+    'Produce a structured result',
+    'Attach reusable artifacts',
+  ];
 }
 
 function messagesForAction(
@@ -380,7 +408,10 @@ function messagesForAction(
       id: `message-${crypto.randomUUID()}`,
       kind: 'reading',
       label: 'Reading context',
-      text: context === null ? 'No page context was available.' : `Using ${context.label} as task context.`,
+      text:
+        context === null
+          ? 'No page context was available.'
+          : `Using ${context.label} as task context.`,
       timestamp,
     },
     {
@@ -411,8 +442,12 @@ function compactActionInput(action: LooseSidebarTaskActionInput): SidebarTaskAct
     id: action.id,
     title: action.title,
     ...(action.description === undefined ? {} : { description: action.description }),
-    ...(action.artifactsProduced === undefined ? {} : { artifactsProduced: action.artifactsProduced }),
-    ...(action.estimatedDurationSec === undefined ? {} : { estimatedDurationSec: action.estimatedDurationSec }),
+    ...(action.artifactsProduced === undefined
+      ? {}
+      : { artifactsProduced: action.artifactsProduced }),
+    ...(action.estimatedDurationSec === undefined
+      ? {}
+      : { estimatedDurationSec: action.estimatedDurationSec }),
     ...(action.executionPlan === undefined ? {} : { executionPlan: action.executionPlan }),
     ...(action.followUps === undefined ? {} : { followUps: action.followUps }),
     ...(action.iconName === undefined ? {} : { iconName: action.iconName }),

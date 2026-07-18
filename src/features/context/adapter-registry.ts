@@ -1,3 +1,4 @@
+import { ChatGPTAdapter } from './adapters/chatgpt-adapter';
 import { DocsAdapter } from './adapters/docs-adapter';
 import { GenericWebAdapter } from './adapters/generic-web-adapter';
 import { GitHubAdapter } from './adapters/github-adapter';
@@ -14,6 +15,7 @@ export class ContextAdapterRegistry {
 
   public constructor(
     adapters: readonly ContextAdapter[] = [
+      new ChatGPTAdapter(),
       new GitHubAdapter(),
       new YouTubeAdapter(),
       new GmailAdapter(),

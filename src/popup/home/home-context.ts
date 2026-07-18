@@ -15,7 +15,8 @@ export function buildHomePageContext(
 
   const hostname = pageContext?.hostname ?? safeHostname(url);
   const pageKind = pageContext?.pageKind ?? inferPageKind(hostname, url);
-  const hasSelection = pageContext?.selectedText !== undefined && pageContext.selectedText.length > 0;
+  const hasSelection =
+    pageContext?.selectedText !== undefined && pageContext.selectedText.length > 0;
 
   return {
     confidence: pageContext === null ? 72 : hasSelection ? 98 : 92,
@@ -51,6 +52,10 @@ function inferPageKind(hostname: string, url: string): PageKind {
     return 'pdf';
   }
 
+  if (hostname.includes('chatgpt.com') || hostname.includes('chat.openai.com')) {
+    return 'chat-empty';
+  }
+
   if (hostname.includes('github.com') || hostname.includes('stackoverflow.com')) {
     return 'code';
   }
@@ -63,7 +68,11 @@ function inferPageKind(hostname: string, url: string): PageKind {
     return 'video';
   }
 
-  if (hostname.includes('twitter.com') || hostname.includes('x.com') || hostname.includes('linkedin.com')) {
+  if (
+    hostname.includes('twitter.com') ||
+    hostname.includes('x.com') ||
+    hostname.includes('linkedin.com')
+  ) {
     return 'social';
   }
 
@@ -77,6 +86,10 @@ function inferPageKind(hostname: string, url: string): PageKind {
 function platformLabel(hostname: string, pageKind: PageKind): string {
   if (hostname.includes('github.com')) {
     return 'GitHub';
+  }
+
+  if (hostname.includes('chatgpt.com') || hostname.includes('chat.openai.com')) {
+    return pageKind === 'chat-thread' ? 'ChatGPT conversation' : 'New ChatGPT chat';
   }
 
   if (hostname.includes('youtube.com')) {
@@ -117,6 +130,8 @@ function platformLabel(hostname: string, pageKind: PageKind): string {
 
   const fallback = {
     article: 'Article',
+    'chat-empty': 'New chat',
+    'chat-thread': 'Chat thread',
     code: 'Code page',
     document: 'Document',
     email: 'Email',

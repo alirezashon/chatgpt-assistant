@@ -113,9 +113,11 @@ function categoryForAction(category: ActionCategory): PaletteCommandCategory {
     case 'coding':
       return 'coding';
     case 'email':
+    case 'language':
     case 'writing':
       return 'writing';
     case 'learning':
+    case 'media':
     case 'research':
       return 'research';
     case 'meetings':

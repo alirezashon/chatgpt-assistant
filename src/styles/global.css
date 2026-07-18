@@ -1,5 +1,12 @@
 @import 'tailwindcss';
 
+@font-face {
+  font-family: 'IRANSansWeb';
+  font-style: normal;
+  font-weight: 400;
+  src: url('/fonts/IRANSansWeb-FaNum.ttf') format('truetype');
+}
+
 :root {
   color-scheme: light;
   --ds-color-background: #09090b;
@@ -97,6 +104,10 @@
 body {
   background: var(--ds-color-background);
   margin: 0;
+}
+
+[lang='fa'] {
+  font-family: IRANSansWeb, 'Segoe UI', Tahoma, Arial, sans-serif;
 }
 
 button,

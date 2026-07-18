@@ -5,6 +5,282 @@ const SIDEBAR_PERMISSIONS = ['activeTab', 'sidePanel', 'storage'];
 
 export const FIRST_PARTY_ACTIONS: readonly ProductAction[] = [
   action({
+    aliases: ['tts', 'text to speech', 'read persian', 'voice'],
+    artifactsProduced: [
+      { format: 'Audio', title: 'Spoken playback' },
+      { format: 'Markdown', title: 'Source text' },
+    ],
+    category: 'language',
+    description: 'Read Persian or English text aloud with the best available browser voice.',
+    estimatedDurationSec: 10,
+    executionPlan: [
+      step('load-language-text', 'Load text', 'Use selected text, pasted text, or typed text.'),
+      step('select-voice', 'Select voice', 'Prefer fa-IR voices for Persian and fall back safely.'),
+      step('speak-text', 'Speak text', 'Play, pause, or stop speech inside the language studio.'),
+    ],
+    icon: 'volume',
+    id: 'language.textToSpeech',
+    popularity: 0.82,
+    requiredAiTools: ['browser-speech', 'persian'],
+    requiredPermissions: SIDEBAR_PERMISSIONS,
+    suggestedFollowUps: [
+      { actionId: 'language.normalizePersian', title: 'Normalize Persian Text' },
+      { actionId: 'memory.saveContext', title: 'Save To Memory' },
+    ],
+    supportedContexts: [
+      { requiresSelection: true },
+      { pageKinds: ['chat-empty', 'chat-thread', 'document', 'generic'] },
+    ],
+    tags: ['language', 'persian', 'tts', 'voice'],
+    title: 'Text To Speech',
+  }),
+  action({
+    aliases: ['stt', 'speech to text', 'dictation', 'voice typing'],
+    artifactsProduced: [
+      { format: 'Transcript', title: 'Speech transcript' },
+      { format: 'Markdown', title: 'Clean transcript' },
+    ],
+    category: 'language',
+    description: 'Dictate Persian or English speech into editable transcript text.',
+    estimatedDurationSec: 18,
+    executionPlan: [
+      step(
+        'start-dictation',
+        'Start dictation',
+        'Open the microphone recognizer with fa-IR support when available.',
+      ),
+      step(
+        'capture-transcript',
+        'Capture transcript',
+        'Collect interim and final speech recognition results.',
+      ),
+      step(
+        'clean-language-text',
+        'Clean text',
+        'Normalize digits and Persian characters for reuse.',
+      ),
+    ],
+    icon: 'mic',
+    id: 'language.speechToText',
+    popularity: 0.8,
+    requiredAiTools: ['browser-speech', 'dictation', 'persian'],
+    requiredPermissions: SIDEBAR_PERMISSIONS,
+    suggestedFollowUps: [
+      { actionId: 'language.textToSpeech', title: 'Read It Aloud' },
+      { actionId: 'language.normalizePersian', title: 'Normalize Persian Text' },
+    ],
+    supportedContexts: [],
+    tags: ['language', 'persian', 'stt', 'microphone'],
+    title: 'Speech To Text',
+  }),
+  action({
+    aliases: ['persian digits', 'normalize fa', 'keyboard layout', 'convert numbers'],
+    artifactsProduced: [
+      { format: 'Markdown', title: 'Normalized text' },
+      { format: 'Checklist', title: 'Language transforms' },
+    ],
+    category: 'language',
+    description:
+      'Convert Persian and English digits, normalize Arabic characters, and fix keyboard-layout text.',
+    estimatedDurationSec: 8,
+    executionPlan: [
+      step('load-language-text', 'Load text', 'Use selected text, pasted text, or typed text.'),
+      step('convert-digits', 'Convert digits', 'Switch Persian and English numerals both ways.'),
+      step(
+        'normalize-persian',
+        'Normalize Persian',
+        'Fix Arabic Yeh/Kaf and keyboard-layout characters.',
+      ),
+    ],
+    icon: 'languages',
+    id: 'language.normalizePersian',
+    popularity: 0.84,
+    requiredAiTools: ['persian-normalization'],
+    requiredPermissions: SIDEBAR_PERMISSIONS,
+    suggestedFollowUps: [
+      { actionId: 'language.textToSpeech', title: 'Read It Aloud' },
+      { actionId: 'workflow.start', title: 'Run Workflow' },
+    ],
+    supportedContexts: [
+      { requiresSelection: true },
+      { pageKinds: ['chat-empty', 'chat-thread', 'document', 'generic'] },
+    ],
+    tags: ['language', 'persian', 'digits', 'keyboard'],
+    title: 'Persian Text Tools',
+  }),
+  action({
+    aliases: ['image editor', 'edit image', 'crop image', 'gallery'],
+    artifactsProduced: [
+      { format: 'Image', title: 'Edited image' },
+      { format: 'Checklist', title: 'Edit recipe' },
+    ],
+    category: 'media',
+    description:
+      'Upload, capture, crop, rotate, filter, download, and attach images from a media gallery.',
+    estimatedDurationSec: 22,
+    executionPlan: [
+      step(
+        'load-media',
+        'Load media',
+        'Upload images or read visible image sources from the current page.',
+      ),
+      step(
+        'edit-canvas',
+        'Edit in canvas',
+        'Crop, rotate, and adjust image filters in JavaScript.',
+      ),
+      step(
+        'export-media',
+        'Export media',
+        'Download the edited image or attach it to the active chat input.',
+      ),
+    ],
+    icon: 'image',
+    id: 'image.edit',
+    popularity: 0.9,
+    requiredAiTools: ['vision', 'image-editing'],
+    requiredPermissions: SIDEBAR_PERMISSIONS,
+    suggestedFollowUps: [
+      { actionId: 'memory.saveContext', title: 'Save To Memory' },
+      { actionId: 'workflow.start', title: 'Run Workflow' },
+    ],
+    supportedContexts: [
+      { pageKinds: ['article', 'generic', 'social'] },
+      { requiresSelection: true },
+    ],
+    tags: ['image', 'media', 'gallery', 'canvas'],
+    title: 'Edit Image',
+  }),
+  action({
+    aliases: ['cut video', 'trim video', 'video crop', 'clip video'],
+    artifactsProduced: [
+      { format: 'Video', title: 'Video clip' },
+      { format: 'Checklist', title: 'Clip recipe' },
+    ],
+    category: 'media',
+    description:
+      'Upload or capture a video source, choose a start and end time, then export a clip.',
+    estimatedDurationSec: 28,
+    executionPlan: [
+      step(
+        'load-media',
+        'Load media',
+        'Upload video or read visible video sources from the current page.',
+      ),
+      step('select-range', 'Select range', 'Choose the start and end time for the clip.'),
+      step(
+        'export-media',
+        'Export media',
+        'Render a downloadable clip or attach it to the active chat input.',
+      ),
+    ],
+    icon: 'scissors',
+    id: 'video.cut',
+    popularity: 0.86,
+    requiredAiTools: ['video-editing'],
+    requiredPermissions: SIDEBAR_PERMISSIONS,
+    suggestedFollowUps: [
+      { actionId: 'image.edit', title: 'Edit Thumbnail' },
+      { actionId: 'workflow.start', title: 'Run Workflow' },
+    ],
+    supportedContexts: [{ pageKinds: ['video', 'generic', 'social'] }],
+    tags: ['video', 'media', 'clip', 'trim'],
+    title: 'Cut Video',
+  }),
+  action({
+    aliases: ['chat summary', 'summarize chat', 'conversation recap'],
+    artifactsProduced: [
+      { format: 'Markdown', title: 'Conversation summary' },
+      { format: 'Checklist', title: 'Decisions and next steps' },
+    ],
+    category: 'productivity',
+    description:
+      'Summarize the active ChatGPT conversation into decisions, open questions, and next steps.',
+    estimatedDurationSec: 18,
+    executionPlan: [
+      step('read-chat', 'Read chat', 'Capture visible user and assistant messages.'),
+      step(
+        'extract-decisions',
+        'Extract decisions',
+        'Find decisions, unresolved questions, and useful context.',
+      ),
+      step('write-summary', 'Write summary', 'Create a reusable conversation brief.'),
+    ],
+    icon: 'chat',
+    id: 'chat.summarizeThread',
+    popularity: 0.88,
+    requiredAiTools: ['summarization'],
+    requiredPermissions: SIDEBAR_PERMISSIONS,
+    suggestedFollowUps: [
+      { actionId: 'chat.extractTasks', title: 'Extract Tasks' },
+      { actionId: 'memory.saveContext', title: 'Save To Memory' },
+    ],
+    supportedContexts: [{ pageKinds: ['chat-thread'] }],
+    tags: ['chatgpt', 'conversation', 'summary'],
+    title: 'Summarize Chat',
+  }),
+  action({
+    aliases: ['tasks from chat', 'action items', 'todo'],
+    artifactsProduced: [
+      { format: 'Checklist', title: 'Task list' },
+      { format: 'Markdown', title: 'Execution plan' },
+    ],
+    category: 'productivity',
+    description:
+      'Turn the active ChatGPT conversation into clear tasks, owners, risks, and follow-ups.',
+    estimatedDurationSec: 20,
+    executionPlan: [
+      step('read-chat', 'Read chat', 'Capture goals, constraints, and unresolved asks.'),
+      step('extract-tasks', 'Extract tasks', 'Convert the conversation into actionable steps.'),
+      step('prioritize-work', 'Prioritize work', 'Group tasks by urgency and dependency.'),
+    ],
+    icon: 'list',
+    id: 'chat.extractTasks',
+    popularity: 0.84,
+    requiredAiTools: ['summarization', 'planning'],
+    requiredPermissions: SIDEBAR_PERMISSIONS,
+    suggestedFollowUps: [
+      { actionId: 'workflow.start', title: 'Run Workflow' },
+      { actionId: 'memory.saveContext', title: 'Save To Memory' },
+    ],
+    supportedContexts: [{ pageKinds: ['chat-thread'] }],
+    tags: ['chatgpt', 'tasks', 'planning'],
+    title: 'Extract Tasks',
+  }),
+  action({
+    aliases: ['prompt', 'better prompt', 'write prompt'],
+    artifactsProduced: [
+      { format: 'Markdown', title: 'Improved prompt' },
+      { format: 'Checklist', title: 'Prompt checklist' },
+    ],
+    category: 'writing',
+    description:
+      'Turn a blank chat, selected text, or rough draft into a precise prompt with context and success criteria.',
+    estimatedDurationSec: 16,
+    executionPlan: [
+      step('read-intent', 'Read intent', 'Capture the draft, selected text, or blank-chat goal.'),
+      step(
+        'structure-prompt',
+        'Structure prompt',
+        'Add role, context, constraints, output format, and examples.',
+      ),
+      step(
+        'return-prompt',
+        'Return prompt',
+        'Produce a ready-to-send prompt and a short checklist.',
+      ),
+    ],
+    icon: 'write',
+    id: 'prompt.improve',
+    popularity: 0.86,
+    requiredAiTools: ['writing'],
+    requiredPermissions: SIDEBAR_PERMISSIONS,
+    suggestedFollowUps: [{ actionId: 'workflow.start', title: 'Run Workflow' }],
+    supportedContexts: [{ pageKinds: ['chat-empty'] }, { requiresSelection: true }],
+    tags: ['chatgpt', 'prompt', 'writing'],
+    title: 'Improve Prompt',
+  }),
+  action({
     aliases: ['sum', 'summ', 'summary', 'tldr', 'brief'],
     artifactsProduced: [
       { format: 'Markdown', title: 'Page summary' },
@@ -15,7 +291,11 @@ export const FIRST_PARTY_ACTIONS: readonly ProductAction[] = [
     estimatedDurationSec: 18,
     executionPlan: [
       step('read-page', 'Read page', 'Capture visible title, structure, and main content.'),
-      step('identify-signals', 'Identify signals', 'Find decisions, facts, claims, and open questions.'),
+      step(
+        'identify-signals',
+        'Identify signals',
+        'Find decisions, facts, claims, and open questions.',
+      ),
       step('write-summary', 'Write summary', 'Generate a concise answer-first summary.'),
     ],
     icon: 'document',
@@ -42,8 +322,16 @@ export const FIRST_PARTY_ACTIONS: readonly ProductAction[] = [
     description: 'Review a pull request for risks, regressions, and missing tests.',
     estimatedDurationSec: 35,
     executionPlan: [
-      step('read-diff', 'Read changed files', 'Inspect changed files and visible discussion context.'),
-      step('assess-risk', 'Assess risk', 'Identify correctness, security, and test coverage risks.'),
+      step(
+        'read-diff',
+        'Read changed files',
+        'Inspect changed files and visible discussion context.',
+      ),
+      step(
+        'assess-risk',
+        'Assess risk',
+        'Identify correctness, security, and test coverage risks.',
+      ),
       step('draft-review', 'Draft review', 'Produce prioritized findings and a concise summary.'),
     ],
     icon: 'git',
@@ -93,8 +381,16 @@ export const FIRST_PARTY_ACTIONS: readonly ProductAction[] = [
     description: 'Find likely bugs, edge cases, and root causes in the current code context.',
     estimatedDurationSec: 28,
     executionPlan: [
-      step('inspect-context', 'Inspect context', 'Read selected code, errors, or current developer page.'),
-      step('trace-failure', 'Trace failure', 'Reason through likely failure paths and assumptions.'),
+      step(
+        'inspect-context',
+        'Inspect context',
+        'Read selected code, errors, or current developer page.',
+      ),
+      step(
+        'trace-failure',
+        'Trace failure',
+        'Reason through likely failure paths and assumptions.',
+      ),
       step('recommend-fix', 'Recommend fix', 'Return probable causes and concrete fixes.'),
     ],
     icon: 'bug',
@@ -143,7 +439,11 @@ export const FIRST_PARTY_ACTIONS: readonly ProductAction[] = [
     executionPlan: [
       step('read-structure', 'Read structure', 'Identify the important concepts and APIs.'),
       step('organize-docs', 'Organize docs', 'Choose headings and examples for the target reader.'),
-      step('draft-docs', 'Draft documentation', 'Generate documentation that can be copied or saved.'),
+      step(
+        'draft-docs',
+        'Draft documentation',
+        'Generate documentation that can be copied or saved.',
+      ),
     ],
     icon: 'document',
     id: 'content.generateDocumentation',
@@ -163,7 +463,11 @@ export const FIRST_PARTY_ACTIONS: readonly ProductAction[] = [
     estimatedDurationSec: 25,
     executionPlan: [
       step('read-repo', 'Read repository', 'Use visible README, navigation, and file context.'),
-      step('map-structure', 'Map structure', 'Identify architecture, entry points, and ownership areas.'),
+      step(
+        'map-structure',
+        'Map structure',
+        'Identify architecture, entry points, and ownership areas.',
+      ),
       step('summarize-repo', 'Summarize repository', 'Produce a concise orientation brief.'),
     ],
     icon: 'document',
@@ -210,7 +514,11 @@ export const FIRST_PARTY_ACTIONS: readonly ProductAction[] = [
     description: 'Summarize the current video and extract the important takeaways.',
     estimatedDurationSec: 22,
     executionPlan: [
-      step('read-video', 'Read video context', 'Capture title, metadata, and available transcript context.'),
+      step(
+        'read-video',
+        'Read video context',
+        'Capture title, metadata, and available transcript context.',
+      ),
       step('extract-themes', 'Extract themes', 'Identify main ideas, examples, and claims.'),
       step('summarize-video', 'Summarize video', 'Produce a compact learning summary.'),
     ],
@@ -469,7 +777,10 @@ export const FIRST_PARTY_ACTIONS: readonly ProductAction[] = [
     requiredAiTools: ['code-generation'],
     requiredPermissions: SIDEBAR_PERMISSIONS,
     suggestedFollowUps: [{ actionId: 'code.generateTests', title: 'Generate Tests' }],
-    supportedContexts: [{ requiresSelection: true }, { pageKinds: ['code', 'document', 'generic'] }],
+    supportedContexts: [
+      { requiresSelection: true },
+      { pageKinds: ['code', 'document', 'generic'] },
+    ],
     tags: ['regex', 'code', 'developer'],
     title: 'Build A Regex',
   }),
@@ -522,7 +833,11 @@ export const FIRST_PARTY_ACTIONS: readonly ProductAction[] = [
     description: 'Start a reusable multi-step workflow from this context.',
     estimatedDurationSec: 42,
     executionPlan: [
-      step('understand-goal', 'Understand goal', 'Use context to infer the outcome and constraints.'),
+      step(
+        'understand-goal',
+        'Understand goal',
+        'Use context to infer the outcome and constraints.',
+      ),
       step('plan-workflow', 'Plan workflow', 'Break the work into ordered steps.'),
       step('start-workflow', 'Start workflow', 'Run or stage the workflow in the task workspace.'),
     ],

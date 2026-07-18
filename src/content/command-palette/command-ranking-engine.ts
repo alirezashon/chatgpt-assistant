@@ -102,6 +102,9 @@ function categoryForPageKind(pageKind: PageContextSnapshot['pageKind']) {
   switch (pageKind) {
     case 'code':
       return 'coding';
+    case 'chat-empty':
+    case 'chat-thread':
+      return 'workflow';
     case 'email':
       return 'writing';
     case 'article':

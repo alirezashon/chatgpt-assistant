@@ -22,6 +22,7 @@ export interface HomeAction {
   readonly suggestedFollowUps?: readonly ActionFollowUp[];
   readonly icon: LucideIcon;
   readonly id: string;
+  readonly outcome?: string;
   readonly requiredAiTools?: readonly string[];
   readonly title: string;
 }

@@ -1,0 +1,14 @@
+{
+  "code": "fa",
+  "features": [
+    "fa-IR speech synthesis preference",
+    "fa-IR speech recognition preference",
+    "Persian to English digit conversion",
+    "English to Persian digit conversion",
+    "Arabic character normalization",
+    "English keyboard layout to Persian keyboard layout",
+    "Persian keyboard layout to English keyboard layout"
+  ],
+  "source": "bundled-language-pack/fa",
+  "version": "0.1.0"
+}

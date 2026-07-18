@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 
+import { copyForLocale, localeDirection, useAppLocale } from '@/i18n';
+
 import { homeStatus } from './home-context';
 import { loadHomeActivity } from './home-activity';
 import { FavoritesSection } from './FavoritesSection';
 import { HomeFooter } from './HomeFooter';
+import { HomeGuideCard } from './HomeGuideCard';
 import { HomeHeader } from './HomeHeader';
 import { PageContextSection } from './PageContextSection';
 import { PrimaryActionsSection } from './PrimaryActionsSection';
@@ -24,6 +27,8 @@ export function HomeExperience({
   readonly tabId: number | undefined;
   readonly windowId: number | undefined;
 }) {
+  const [locale] = useAppLocale();
+  const copy = copyForLocale(locale);
   const [activity, setActivity] = useState<HomeActivityState>({
     recent: [],
     smartSuggestions: [],
@@ -32,7 +37,7 @@ export function HomeExperience({
   useEffect(() => {
     let cancelled = false;
 
-    void loadHomeActivity().then((loaded) => {
+    void loadHomeActivity(locale).then((loaded) => {
       if (!cancelled) {
         setActivity(loaded);
       }
@@ -41,28 +46,39 @@ export function HomeExperience({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [locale]);
 
   return (
-    <main className="w-[var(--ds-popup-width)] bg-[var(--ds-color-background)] text-[color:var(--ds-color-text)]">
+    <main
+      className="w-[var(--ds-popup-width)] bg-[var(--ds-color-background)] text-[color:var(--ds-color-text)]"
+      dir={localeDirection(locale)}
+      lang={locale}
+    >
       <div className="relative">
         <div className="absolute inset-x-0 top-0 h-[var(--ds-popup-glow-height)] bg-[radial-gradient(circle_at_80%_0%,var(--ds-color-accent-glow),transparent_42%)]" />
         <div className="relative p-[var(--ds-space-3)]">
-          <HomeHeader status={homeStatus({ canMessageTab, contextLoading })} />
+          <HomeHeader copy={copy.home} status={homeStatus({ canMessageTab, contextLoading })} />
+          <HomeGuideCard copy={copy.home} />
           <PrimaryActionsSection
             canMessageTab={canMessageTab}
             context={context}
+            copy={copy.home}
+            locale={locale}
+            secondsLabel={copy.common.seconds}
             tabId={tabId}
             windowId={windowId}
           />
           <PageContextSection
             canMessageTab={canMessageTab}
             context={context}
+            copy={copy.home}
+            locale={locale}
             tabId={tabId}
             windowId={windowId}
           />
           <SmartSuggestionsSection
             context={context}
+            copy={copy.home}
             suggestions={activity.smartSuggestions}
             tabId={tabId}
             windowId={windowId}
@@ -70,6 +86,8 @@ export function HomeExperience({
           <RecentActivitySection
             canMessageTab={canMessageTab}
             context={context}
+            copy={copy.home}
+            locale={locale}
             recent={activity.recent}
             tabId={tabId}
             windowId={windowId}
@@ -77,10 +95,12 @@ export function HomeExperience({
           <FavoritesSection
             canMessageTab={canMessageTab}
             context={context}
+            copy={copy.home}
+            locale={locale}
             tabId={tabId}
             windowId={windowId}
           />
-          <HomeFooter canMessageTab={canMessageTab} tabId={tabId} />
+          <HomeFooter canMessageTab={canMessageTab} copy={copy.home} tabId={tabId} />
         </div>
       </div>
     </main>

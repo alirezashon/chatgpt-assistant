@@ -4,10 +4,16 @@ import { Panel, SectionTitle } from '@/design-system';
 
 import type { SidebarTask } from './sidebar-workspace-types';
 
-export function GeneratedResultsPanel({ task }: { readonly task: SidebarTask }) {
+export function GeneratedResultsPanel({
+  copy,
+  task,
+}: {
+  readonly copy: { readonly generatedResults: string };
+  readonly task: SidebarTask;
+}) {
   return (
     <Panel className="p-[var(--ds-space-3)]">
-      <SectionTitle icon={FileText} title="Generated results" />
+      <SectionTitle icon={FileText} title={copy.generatedResults} />
       <div className="mt-[var(--ds-space-3)] grid gap-[var(--ds-space-2)]">
         {task.results.map((result) => (
           <article
@@ -24,7 +30,10 @@ export function GeneratedResultsPanel({ task }: { readonly task: SidebarTask }) 
             </div>
             <ul className="mt-[var(--ds-space-2)] grid gap-[var(--ds-space-1)]">
               {result.content.map((item) => (
-                <li className="text-[length:var(--ds-font-body)] leading-[var(--ds-line-body)] text-[color:var(--ds-color-text)]" key={item}>
+                <li
+                  className="text-[length:var(--ds-font-body)] leading-[var(--ds-line-body)] text-[color:var(--ds-color-text)]"
+                  key={item}
+                >
                   {item}
                 </li>
               ))}

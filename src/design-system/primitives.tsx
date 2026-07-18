@@ -42,8 +42,7 @@ const buttonStyles = cva(
 );
 
 export interface ButtonProps
-  extends ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonStyles> {
+  extends ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonStyles> {
   readonly icon?: LucideIcon;
 }
 
@@ -74,7 +73,8 @@ const iconButtonStyles = cva(
         md: 'h-[var(--ds-control-md)] w-[var(--ds-control-md)]',
       },
       variant: {
-        ghost: 'text-[color:var(--ds-color-text-muted)] hover:bg-[var(--ds-color-hover)] hover:text-[color:var(--ds-color-text)]',
+        ghost:
+          'text-[color:var(--ds-color-text-muted)] hover:bg-[var(--ds-color-hover)] hover:text-[color:var(--ds-color-text)]',
         secondary:
           'border border-[color:var(--ds-color-border)] bg-[var(--ds-color-secondary)] text-[color:var(--ds-color-text-muted)] hover:border-[color:var(--ds-color-border-strong)] hover:bg-[var(--ds-color-hover)] hover:text-[color:var(--ds-color-text)]',
       },
@@ -83,13 +83,21 @@ const iconButtonStyles = cva(
 );
 
 export interface IconButtonProps
-  extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'>,
+  extends
+    Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'>,
     VariantProps<typeof iconButtonStyles> {
   readonly icon: LucideIcon;
   readonly label: string;
 }
 
-export function IconButton({ className, icon: Icon, label, size, variant, ...props }: IconButtonProps) {
+export function IconButton({
+  className,
+  icon: Icon,
+  label,
+  size,
+  variant,
+  ...props
+}: IconButtonProps) {
   return (
     <button
       aria-label={label}
@@ -109,7 +117,8 @@ const panelStyles = cva(cn(ds.radius.lg, ds.border.default), {
   },
   variants: {
     tone: {
-      accent: 'border-[color:var(--ds-color-accent-border)] bg-[var(--ds-color-accent-surface)] shadow-[var(--ds-shadow-panel)]',
+      accent:
+        'border-[color:var(--ds-color-accent-border)] bg-[var(--ds-color-accent-surface)] shadow-[var(--ds-shadow-panel)]',
       default: 'bg-[var(--ds-color-panel)]',
       elevated: 'bg-[var(--ds-color-surface)] shadow-[var(--ds-shadow-panel)]',
       subtle: 'bg-[var(--ds-color-surface-subtle)]',
@@ -136,10 +145,20 @@ export interface SurfaceRootProps extends HTMLAttributes<HTMLElement> {
 
 export function SurfaceRoot({ children, className, size = 'content', ...props }: SurfaceRootProps) {
   const widthClass =
-    size === 'popup' ? ds.layout.popupWidth : size === 'sidebar' ? ds.layout.sidebarWidth : ds.layout.contentWidth;
+    size === 'popup'
+      ? ds.layout.popupWidth
+      : size === 'sidebar'
+        ? ds.layout.sidebarWidth
+        : ds.layout.contentWidth;
 
   return (
-    <main className={cn('min-h-screen bg-[var(--ds-color-background)] text-[color:var(--ds-color-text)]', className)} {...props}>
+    <main
+      className={cn(
+        'min-h-screen bg-[var(--ds-color-background)] text-[color:var(--ds-color-text)]',
+        className,
+      )}
+      {...props}
+    >
       <div className={cn('mx-auto w-full', widthClass)}>{children}</div>
     </main>
   );
@@ -158,14 +177,25 @@ export function PageHeader({ actions, eyebrow, icon: Icon, subtitle, title }: Pa
     <header className="flex items-center justify-between gap-[var(--ds-space-3)] border-b border-[color:var(--ds-color-border)] px-[var(--ds-space-4)] py-[var(--ds-space-4)]">
       <div className="flex min-w-0 items-center gap-[var(--ds-space-3)]">
         {Icon === undefined ? null : (
-          <div className={cn('grid shrink-0 place-items-center bg-[var(--ds-color-surface-subtle)]', ds.border.default, ds.radius.lg, 'h-[var(--ds-icon-tile)] w-[var(--ds-icon-tile)]')}>
+          <div
+            className={cn(
+              'grid shrink-0 place-items-center bg-[var(--ds-color-surface-subtle)]',
+              ds.border.default,
+              ds.radius.lg,
+              'h-[var(--ds-icon-tile)] w-[var(--ds-icon-tile)]',
+            )}
+          >
             <Icon aria-hidden="true" className={cn(ds.icon.md, ds.color.accent)} />
           </div>
         )}
         <div className="min-w-0">
-          {eyebrow === undefined ? null : <p className={cn(ds.text.label, ds.color.muted)}>{eyebrow}</p>}
+          {eyebrow === undefined ? null : (
+            <p className={cn(ds.text.label, ds.color.muted)}>{eyebrow}</p>
+          )}
           <h1 className={cn('truncate', ds.text.title, ds.color.heading)}>{title}</h1>
-          {subtitle === undefined ? null : <p className={cn('truncate', ds.text.caption, ds.color.caption)}>{subtitle}</p>}
+          {subtitle === undefined ? null : (
+            <p className={cn('truncate', ds.text.caption, ds.color.caption)}>{subtitle}</p>
+          )}
         </div>
       </div>
       {actions}
@@ -173,10 +203,18 @@ export function PageHeader({ actions, eyebrow, icon: Icon, subtitle, title }: Pa
   );
 }
 
-export function SectionTitle({ icon: Icon, title }: { readonly icon?: LucideIcon; readonly title: string }) {
+export function SectionTitle({
+  icon: Icon,
+  title,
+}: {
+  readonly icon?: LucideIcon;
+  readonly title: string;
+}) {
   return (
     <div className="flex items-center gap-[var(--ds-space-2)]">
-      {Icon === undefined ? null : <Icon aria-hidden="true" className={cn(ds.icon.sm, ds.color.muted)} />}
+      {Icon === undefined ? null : (
+        <Icon aria-hidden="true" className={cn(ds.icon.sm, ds.color.muted)} />
+      )}
       <h2 className={cn(ds.text.label, ds.color.muted)}>{title}</h2>
     </div>
   );
@@ -188,12 +226,17 @@ const badgeStyles = cva(cn('inline-flex items-center font-medium', ds.radius.sm)
   },
   variants: {
     intent: {
-      accent: 'border border-[color:var(--ds-color-accent-border)] bg-[var(--ds-color-accent-surface)] text-[color:var(--ds-color-accent)]',
-      danger: 'border border-[color:var(--ds-color-danger-border)] bg-[var(--ds-color-danger-surface)] text-[color:var(--ds-color-danger)]',
+      accent:
+        'border border-[color:var(--ds-color-accent-border)] bg-[var(--ds-color-accent-surface)] text-[color:var(--ds-color-accent)]',
+      danger:
+        'border border-[color:var(--ds-color-danger-border)] bg-[var(--ds-color-danger-surface)] text-[color:var(--ds-color-danger)]',
       info: 'border border-[color:var(--ds-color-info-border)] bg-[var(--ds-color-info-surface)] text-[color:var(--ds-color-info)]',
-      muted: 'border border-[color:var(--ds-color-border)] bg-[var(--ds-color-secondary)] text-[color:var(--ds-color-text-muted)]',
-      success: 'border border-[color:var(--ds-color-success-border)] bg-[var(--ds-color-success-surface)] text-[color:var(--ds-color-success)]',
-      warning: 'border border-[color:var(--ds-color-warning-border)] bg-[var(--ds-color-warning-surface)] text-[color:var(--ds-color-warning)]',
+      muted:
+        'border border-[color:var(--ds-color-border)] bg-[var(--ds-color-secondary)] text-[color:var(--ds-color-text-muted)]',
+      success:
+        'border border-[color:var(--ds-color-success-border)] bg-[var(--ds-color-success-surface)] text-[color:var(--ds-color-success)]',
+      warning:
+        'border border-[color:var(--ds-color-warning-border)] bg-[var(--ds-color-warning-surface)] text-[color:var(--ds-color-warning)]',
     },
   },
 });
@@ -207,12 +250,29 @@ export function Badge({
   readonly className?: string;
   readonly intent?: DesignIntent;
 }) {
-  return <span className={cn(badgeStyles({ intent }), 'px-[var(--ds-space-2)] py-[var(--ds-space-1)] text-[length:var(--ds-font-label)]', className)}>{children}</span>;
+  return (
+    <span
+      className={cn(
+        badgeStyles({ intent }),
+        'px-[var(--ds-space-2)] py-[var(--ds-space-1)] text-[length:var(--ds-font-label)]',
+        className,
+      )}
+    >
+      {children}
+    </span>
+  );
 }
 
 export function KeyboardShortcut({ children }: { readonly children: ReactNode }) {
   return (
-    <kbd className={cn(ds.text.mono, ds.radius.sm, ds.border.default, 'bg-[var(--ds-color-secondary)] px-[var(--ds-space-2)] py-[var(--ds-space-1)] text-[color:var(--ds-color-text-muted)]')}>
+    <kbd
+      className={cn(
+        ds.text.mono,
+        ds.radius.sm,
+        ds.border.default,
+        'bg-[var(--ds-color-secondary)] px-[var(--ds-space-2)] py-[var(--ds-space-1)] text-[color:var(--ds-color-text-muted)]',
+      )}
+    >
       {children}
     </kbd>
   );
@@ -236,7 +296,13 @@ export function StatusIndicator({
 
   return (
     <span className="inline-flex items-center gap-[var(--ds-space-2)]">
-      <span aria-hidden="true" className={cn('h-[var(--ds-status-dot)] w-[var(--ds-status-dot)] rounded-full', colorClass[intent])} />
+      <span
+        aria-hidden="true"
+        className={cn(
+          'h-[var(--ds-status-dot)] w-[var(--ds-status-dot)] rounded-full',
+          colorClass[intent],
+        )}
+      />
       <span>{label}</span>
     </span>
   );
@@ -245,7 +311,8 @@ export function StatusIndicator({
 export interface ActionTileProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   readonly description: string;
   readonly icon: LucideIcon;
-  readonly meta?: string;
+  readonly meta?: string | undefined;
+  readonly outcome?: string | undefined;
   readonly prominent?: boolean;
   readonly title: string;
 }
@@ -255,6 +322,7 @@ export function ActionTile({
   description,
   icon: Icon,
   meta,
+  outcome,
   prominent = false,
   title,
   ...props
@@ -262,7 +330,7 @@ export function ActionTile({
   return (
     <button
       className={cn(
-        'group min-h-[var(--ds-action-tile-height)] text-left transition disabled:cursor-not-allowed disabled:opacity-[var(--ds-opacity-disabled)]',
+        'group min-h-[var(--ds-action-tile-height)] text-start transition disabled:cursor-not-allowed disabled:opacity-[var(--ds-opacity-disabled)]',
         ds.focus,
         ds.radius.lg,
         prominent
@@ -274,27 +342,62 @@ export function ActionTile({
       {...props}
     >
       <div className="flex items-center justify-between gap-[var(--ds-space-2)]">
-        <Icon aria-hidden="true" className={cn(ds.icon.md, prominent ? ds.color.inverse : ds.color.accent)} />
-        {meta === undefined ? null : <span className={cn(ds.text.label, prominent ? 'text-zinc-700' : ds.color.muted)}>{meta}</span>}
+        <Icon
+          aria-hidden="true"
+          className={cn(ds.icon.md, prominent ? ds.color.inverse : ds.color.accent)}
+        />
+        {meta === undefined ? null : (
+          <span className={cn(ds.text.label, prominent ? 'text-zinc-700' : ds.color.muted)}>
+            {meta}
+          </span>
+        )}
       </div>
       <div className={cn('mt-[var(--ds-space-2)] truncate', ds.text.title)}>{title}</div>
-      <p className={cn('mt-[var(--ds-space-1)] line-clamp-1', ds.text.caption, prominent ? 'text-zinc-800' : ds.color.caption)}>
+      <p
+        className={cn(
+          'mt-[var(--ds-space-1)] line-clamp-2 min-h-[2.1rem]',
+          ds.text.caption,
+          prominent ? 'text-zinc-800' : ds.color.caption,
+        )}
+      >
         {description}
       </p>
+      {outcome === undefined ? null : (
+        <div
+          className={cn(
+            'mt-[var(--ds-space-2)] truncate rounded-[var(--ds-radius-sm)] px-[var(--ds-space-2)] py-[var(--ds-space-1)]',
+            ds.text.label,
+            prominent
+              ? 'bg-black/10 text-zinc-800'
+              : 'bg-[var(--ds-color-surface-subtle)] text-[color:var(--ds-color-info)]',
+          )}
+        >
+          {outcome}
+        </div>
+      )}
     </button>
   );
 }
 
 export interface CompactActionRowProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  readonly description?: string | undefined;
   readonly icon: LucideIcon;
+  readonly meta?: string | undefined;
   readonly title: string;
 }
 
-export function CompactActionRow({ className, icon: Icon, title, ...props }: CompactActionRowProps) {
+export function CompactActionRow({
+  className,
+  description,
+  icon: Icon,
+  meta,
+  title,
+  ...props
+}: CompactActionRowProps) {
   return (
     <button
       className={cn(
-        'flex h-[var(--ds-control-sm)] min-w-0 items-center gap-[var(--ds-space-2)] px-[var(--ds-space-2)] text-left transition disabled:cursor-not-allowed disabled:opacity-[var(--ds-opacity-disabled)]',
+        'grid min-h-[var(--ds-control-sm)] grid-cols-[auto_1fr] items-center gap-x-[var(--ds-space-2)] gap-y-[var(--ds-space-1)] px-[var(--ds-space-2)] py-[var(--ds-space-1)] text-start transition disabled:cursor-not-allowed disabled:opacity-[var(--ds-opacity-disabled)]',
         ds.focus,
         ds.radius.md,
         ds.text.caption,
@@ -305,7 +408,19 @@ export function CompactActionRow({ className, icon: Icon, title, ...props }: Com
       {...props}
     >
       <Icon aria-hidden="true" className={cn('shrink-0', ds.icon.sm, ds.color.muted)} />
-      <span className="truncate">{title}</span>
+      <span className="flex min-w-0 items-center justify-between gap-[var(--ds-space-2)]">
+        <span className="truncate">{title}</span>
+        {meta === undefined ? null : (
+          <span className="shrink-0 text-[length:var(--ds-font-label)] text-[color:var(--ds-color-text-subtle)]">
+            {meta}
+          </span>
+        )}
+      </span>
+      {description === undefined ? null : (
+        <span className="col-start-2 line-clamp-1 text-[length:var(--ds-font-label)] leading-[var(--ds-line-caption)] text-[color:var(--ds-color-text-subtle)]">
+          {description}
+        </span>
+      )}
     </button>
   );
 }
@@ -329,7 +444,14 @@ export function MessageBlock({
   readonly text: string;
 }) {
   return (
-    <div className={cn(ds.radius.lg, ds.border.default, muted ? 'bg-[var(--ds-color-surface-muted)]' : 'bg-[var(--ds-color-surface-subtle)]', 'p-[var(--ds-space-3)]')}>
+    <div
+      className={cn(
+        ds.radius.lg,
+        ds.border.default,
+        muted ? 'bg-[var(--ds-color-surface-muted)]' : 'bg-[var(--ds-color-surface-subtle)]',
+        'p-[var(--ds-space-3)]',
+      )}
+    >
       <div className={cn('mb-[var(--ds-space-1)]', ds.text.label, ds.color.muted)}>{label}</div>
       <p className={cn(ds.text.body, ds.color.body)}>{text}</p>
     </div>

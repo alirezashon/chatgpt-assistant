@@ -7,11 +7,13 @@ import type { HomeActivity, HomePageContext } from './home-types';
 
 export function SmartSuggestionsSection({
   context,
+  copy,
   suggestions,
   tabId,
   windowId,
 }: {
   readonly context: HomePageContext | null;
+  readonly copy: { readonly suggestedNext: string };
   readonly suggestions: readonly HomeActivity[];
   readonly tabId: number | undefined;
   readonly windowId: number | undefined;
@@ -23,14 +25,16 @@ export function SmartSuggestionsSection({
   return (
     <section className="mt-[var(--ds-space-3)]">
       <div className="mb-[var(--ds-space-2)]">
-        <SectionTitle icon={Sparkles} title="Suggested next" />
+        <SectionTitle icon={Sparkles} title={copy.suggestedNext} />
       </div>
       <Panel className="grid gap-[var(--ds-space-1)] p-[var(--ds-space-2)]">
         {suggestions.slice(0, 2).map((suggestion) => (
           <CompactActionRow
             aria-label={suggestion.action.description}
+            description={suggestion.action.outcome ?? suggestion.action.description}
             icon={suggestion.action.icon}
             key={suggestion.id}
+            meta={suggestion.action.artifactsProduced?.[0]?.format}
             title={suggestion.label}
             onClick={() => {
               void runHomeAction({ action: suggestion.action, context, tabId, windowId });

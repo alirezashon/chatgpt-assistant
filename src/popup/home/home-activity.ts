@@ -1,29 +1,34 @@
 import { STORAGE_KEYS } from '@/constants/storage';
 import type { AIHistoryEntry } from '@/features/ai/ai-types';
 import type { SearchHistoryItem } from '@/features/search/search-types';
+import type { AppLocale } from '@/i18n';
 import { hasChromeRuntime } from '@/lib/chrome/chrome-api';
 import { ChromeExtensionStorage } from '@/lib/storage';
 
-import { RESEARCH_ACTION, SUMMARIZE_ACTION, WORKFLOW_ACTION } from './home-actions';
+import { researchAction, summarizeAction, workflowAction } from './home-actions';
 import type { HomeActivity, HomeActivityState } from './home-types';
 
 /** Loads real recent activity for the Home screen. */
-export async function loadHomeActivity(): Promise<HomeActivityState> {
+export async function loadHomeActivity(locale: AppLocale): Promise<HomeActivityState> {
   if (!hasChromeRuntime()) {
     return { recent: [], smartSuggestions: [] };
   }
 
   const storage = new ChromeExtensionStorage('local');
-  const values = await storage.getMany([STORAGE_KEYS.aiHistory, STORAGE_KEYS.searchHistory, STORAGE_KEYS.tasks]);
+  const values = await storage.getMany([
+    STORAGE_KEYS.aiHistory,
+    STORAGE_KEYS.searchHistory,
+    STORAGE_KEYS.tasks,
+  ]);
   const aiHistory = readArray(values[STORAGE_KEYS.aiHistory]).filter(isAIHistoryEntry);
   const searchHistory = readArray(values[STORAGE_KEYS.searchHistory]).filter(isSearchHistoryItem);
   const recent = [
-    ...aiHistory.map(aiHistoryToActivity),
-    ...searchHistory.map(searchHistoryToActivity),
+    ...aiHistory.map((entry) => aiHistoryToActivity(entry, locale)),
+    ...searchHistory.map((item) => searchHistoryToActivity(item, locale)),
   ]
     .sort((left, right) => Date.parse(right.completedAt) - Date.parse(left.completedAt))
     .slice(0, 5);
-  const smartSuggestions = buildSmartSuggestions(recent, aiHistory);
+  const smartSuggestions = buildSmartSuggestions(recent, aiHistory, locale);
 
   return { recent, smartSuggestions };
 }
@@ -63,41 +68,47 @@ function isSearchHistoryItem(value: unknown): value is SearchHistoryItem {
   );
 }
 
-function aiHistoryToActivity(entry: AIHistoryEntry): HomeActivity {
-  const action = taskTypeAction(entry.taskType);
+function aiHistoryToActivity(entry: AIHistoryEntry, locale: AppLocale): HomeActivity {
+  const action = taskTypeAction(entry.taskType, locale);
 
   return {
     action,
     completedAt: entry.createdAt,
     id: entry.id,
-    label: entry.status === 'failed' ? `Retry ${action.title}` : pastTense(action.title),
+    label:
+      entry.status === 'failed'
+        ? locale === 'fa'
+          ? `تلاش دوباره: ${action.title}`
+          : `Retry ${action.title}`
+        : pastTense(action.title, locale),
   };
 }
 
-function searchHistoryToActivity(item: SearchHistoryItem): HomeActivity {
+function searchHistoryToActivity(item: SearchHistoryItem, locale: AppLocale): HomeActivity {
   return {
-    action: RESEARCH_ACTION,
+    action: researchAction(locale),
     completedAt: item.createdAt,
     id: item.id,
-    label: `Researched ${item.query}`,
+    label: locale === 'fa' ? `پژوهش: ${item.query}` : `Researched ${item.query}`,
   };
 }
 
 function buildSmartSuggestions(
   recent: readonly HomeActivity[],
   aiHistory: readonly AIHistoryEntry[],
+  locale: AppLocale,
 ): readonly HomeActivity[] {
   const failed = aiHistory.find((entry) => entry.status === 'failed');
 
   if (failed !== undefined) {
-    const action = taskTypeAction(failed.taskType);
+    const action = taskTypeAction(failed.taskType, locale);
 
     return [
       {
         action,
         completedAt: failed.createdAt,
         id: `retry-${failed.id}`,
-        label: `Retry ${action.title}`,
+        label: locale === 'fa' ? `تلاش دوباره: ${action.title}` : `Retry ${action.title}`,
       },
     ];
   }
@@ -113,29 +124,33 @@ function buildSmartSuggestions(
       action: latest.action,
       completedAt: latest.completedAt,
       id: `continue-${latest.id}`,
-      label: `Continue ${latest.action.title}`,
+      label: locale === 'fa' ? `ادامه: ${latest.action.title}` : `Continue ${latest.action.title}`,
     },
   ];
 }
 
-function taskTypeAction(taskType: AIHistoryEntry['taskType']) {
+function taskTypeAction(taskType: AIHistoryEntry['taskType'], locale: AppLocale) {
   switch (taskType) {
     case 'conversation-summarization':
     case 'workspace-analytics':
-      return SUMMARIZE_ACTION;
+      return summarizeAction(locale);
     case 'natural-language-search':
     case 'find-similar':
     case 'related-conversations':
-      return RESEARCH_ACTION;
+      return researchAction(locale);
     case 'future-ai-agent':
     case 'workspace-cleanup':
-      return WORKFLOW_ACTION;
+      return workflowAction(locale);
     default:
-      return RESEARCH_ACTION;
+      return researchAction(locale);
   }
 }
 
-function pastTense(title: string): string {
+function pastTense(title: string, locale: AppLocale): string {
+  if (locale === 'fa') {
+    return `انجام شد: ${title}`;
+  }
+
   if (title.startsWith('Summarize')) {
     return title.replace('Summarize', 'Summarized');
   }

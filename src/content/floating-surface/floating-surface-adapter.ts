@@ -114,7 +114,14 @@ function selectionActionIds(
     return ['data.extractStructured', 'page.summarize', 'research.topic'];
   }
 
-  return ['page.summarize', 'email.improveDraft', 'article.translate', 'memory.saveContext'];
+  return [
+    'page.summarize',
+    'email.improveDraft',
+    'article.translate',
+    'language.normalizePersian',
+    'language.textToSpeech',
+    'memory.saveContext',
+  ];
 }
 
 function floatingCategory(
@@ -125,8 +132,10 @@ function floatingCategory(
       return 'code';
     case 'email':
       return 'communication';
+    case 'language':
     case 'research':
     case 'learning':
+    case 'media':
       return 'research';
     case 'writing':
       return 'writing';
